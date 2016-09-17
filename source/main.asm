@@ -93,19 +93,19 @@
 
 
 EntryPoint:
-	;tst.w ADDR_MYSTERY_RESET
-	;bne Main
-	;tst.w ADDR_RESET
-	;bne Main
+	tst.w ADDR_MYSTERY_RESET
+	bne Main
+	tst.w ADDR_RESET
+	bne Main
 	
-	; Clear RAM
-	;move.l #0, d0 
-	;move.l #0, a0 
-	;move.l #0x3fff, d1 
+	;Clear RAM
+	move.l #0, d0 
+	move.l #0, a0 
+	move.l #0x3fff, d1 
 	
-;.clear 
-	;move.l d0, -(a0)
-	;dbra d1, .clear 
+.clear 
+	move.l d0, -(a0)
+	dbra d1, .clear 
 	
 	
 	
