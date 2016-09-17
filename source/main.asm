@@ -1,3 +1,6 @@
+	include "include/constants.inc"
+
+	ORG 0
 ; Header data retrieved from https://bigevilcorporation.co.uk/2012/02/28/sega-megadrive-1-getting-started/
 ; What a life-saver!
 ; ******************************************************************
@@ -90,10 +93,26 @@
 
 
 EntryPoint:
-Loop:
+	;tst.w ADDR_MYSTERY_RESET
+	;bne Main
+	;tst.w ADDR_RESET
+	;bne Main
+	
+	; Clear RAM
+	;move.l #0, d0 
+	;move.l #0, a0 
+	;move.l #0x3fff, d1 
+	
+;.clear 
+	;move.l d0, -(a0)
+	;dbra d1, .clear 
+	
+	
+	
+Main:
 	move.l #0xF, d0 ; Move 15 into register d0
 	move.l d0, d1   ; Move contents of register d0 into d1
-	jmp Loop        ; Jump back up to 'Loop'
+	jmp Main        ; Jump back up to 'Loop'
  
 HBlankInterrupt:
 VBlankInterrupt:
