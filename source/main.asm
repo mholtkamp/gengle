@@ -103,13 +103,32 @@ EntryPoint:
 	move.l #0, a0 
 	move.l #0x3fff, d1 
 	
-.clear 
+.clear_ram_loop 
 	move.l d0, -(a0)
-	dbra d1, .clear 
+	dbra d1, .clear_ram_loop 
 	
+	; First, write the TMSS so that the VDP doesn't get locked
+	move.l #'SEGA', ADDR_TMSS
+	
+	; Initialize VDP
+	lea VDP_Init_Reg_Vals, a0 
+	move.l #24, d0 
+	move.l #0x00008000, d1 
+	
+.CopyVDP 
+	move.b (a0)+, d1 	; move the register val into lowest byte of d1 
+	move.w d1, ADDR_VDP_CONTROL 
+	add.w #0x0100, d1 
+	dbra d0, .CopyVDP
+	
+	; Initialize I/O 
+	move.b #0, ADDR_CTRL1
+	move.b #0, ADDR_CTRL2
+	move.b #0, ADDR_EXP 
 	
 	
 Main:
+
 	move.l #0xF, d0 ; Move 15 into register d0
 	move.l d0, d1   ; Move contents of register d0 into d1
 	jmp Main        ; Jump back up to 'Loop'
@@ -120,5 +139,33 @@ VBlankInterrupt:
  
 Exception:
 	rte   ; Return from Exception
+	
+
+; Initial register values to be sent to VDP, thanks to Big Evil Corporation
+VDP_Init_Reg_Vals:
+   dc.b 0x20 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on)
+   dc.b 0x74 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
+   dc.b 0x30 ; 2: Pattern table for Scroll Plane A at 0xC000 (bits 3-5)
+   dc.b 0x40 ; 3: Pattern table for Window Plane at 0x10000 (bits 1-5)
+   dc.b 0x05 ; 4: Pattern table for Scroll Plane B at 0xA000 (bits 0-2)
+   dc.b 0x70 ; 5: Sprite table at 0xE000 (bits 0-6)
+   dc.b 0x00 ; 6: Unused
+   dc.b 0x00 ; 7: Background colour - bits 0-3 = colour, bits 4-5 = palette
+   dc.b 0x00 ; 8: Unused
+   dc.b 0x00 ; 9: Unused
+   dc.b 0x00 ; 10: Frequency of Horiz. interrupt in Rasters (number of lines travelled by the beam)
+   dc.b 0x08 ; 11: External interrupts on, V/H scrolling on
+   dc.b 0x81 ; 12: Shadows and highlights off, interlace off, H40 mode (40 cells horizontally)
+   dc.b 0x34 ; 13: Horiz. scroll table at 0xD000 (bits 0-5)
+   dc.b 0x00 ; 14: Unused
+   dc.b 0x00 ; 15: Autoincrement off
+   dc.b 0x01 ; 16: Vert. scroll 32, Horiz. scroll 64
+   dc.b 0x00 ; 17: Window Plane X pos 0 left (pos in bits 0-4, left/right in bit 7)
+   dc.b 0x00 ; 18: Window Plane Y pos 0 up (pos in bits 0-4, up/down in bit 7)
+   dc.b 0x00 ; 19: DMA length lo byte
+   dc.b 0x00 ; 20: DMA length hi byte
+   dc.b 0x00 ; 21: DMA source address lo byte
+   dc.b 0x00 ; 22: DMA source address mid byte
+   dc.b 0x00 ; 23: DMA source address hi byte, memory-to-VRAM mode (bits 6-7)
  
 __end    ; Very last line, end of ROM address
