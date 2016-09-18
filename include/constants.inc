@@ -2,8 +2,31 @@ ADDR_MYSTERY_RESET EQU 0x00A10008
 ADDR_RESET EQU 0x00A1000C
 ADDR_TMSS EQU 0x00A14000
 
+
+; VDP Constants
 ADDR_VDP_DATA EQU 0x00C00000
 ADDR_VDP_CONTROL EQU 0x00C00004
+
+SET_VDP_REG_00 EQU $8000	; Mode Set Register #1
+SET_VDP_REG_01 EQU $8100	; Mode Set Register #2 
+SET_VDP_REG_02 EQU $8200	; VRAM Address for Scroll A
+SET_VDP_REG_03 EQU $8300	; VRAM Address for Window 
+SET_VDP_REG_04 EQU $8400	; VRAM Address for Scroll B 
+SET_VDP_REG_05 EQU $8500	; VRAM Address for Sprite Attributes
+SET_VDP_REG_07 EQU $8700	; Background color
+SET_VDP_REG_0A EQU $8A00	; H Interrupt 
+SET_VDP_REG_0B EQU $8B00	; Mode Set Register #3 
+SET_VDP_REG_0C EQU $8C00	; Mode Set Register #4 
+SET_VDP_REG_0D EQU $8D00	; VRAM Address for Horizontal Scroll 
+SET_VDP_REG_0F EQU $8F00	; Autoincrement 
+SET_VDP_REG_10 EQU $9000	; Scroll Size 
+SET_VDP_REG_11 EQU $9100	; Window Horizontal Position
+SET_VDP_REG_12 EQU $9200	; Window Vertical Position 
+SET_VDP_REG_13 EQU $9300	; DMA Length Bits 7-0
+SET_VDP_REG_14 EQU $9400	; DMA Length Bits 15-8 
+SET_VDP_REG_15 EQU $9500	; DMA Source Address Bits 7-0 
+SET_VDP_REG_16 EQU $9600	; DMA Source Address Bits 15-8
+SET_VDP_REG_17 EQU $9700	; DMA Type 
 
 ADDR_CTRL1 EQU 0x000A10009
 ADDR_CTRL2 EQU 0x000A1000B

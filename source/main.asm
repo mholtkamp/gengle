@@ -115,11 +115,39 @@ EntryPoint:
 	move.l #24, d0 
 	move.l #0x00008000, d1 
 	
-.CopyVDP 
+.copyVDP_Reg
 	move.b (a0)+, d1 	; move the register val into lowest byte of d1 
 	move.w d1, ADDR_VDP_CONTROL 
 	add.w #0x0100, d1 
-	dbra d0, .CopyVDP
+	dbra d0, .copyVDP_Reg
+	
+	; Transfer palette 
+	move.w #(SET_VDP_REG_0F|2), ADDR_VDP_CONTROL	; Set autoincrement to 2 bytes
+	move.l #0xC0000000, ADDR_VDP_CONTROL
+
+	lea Palette, a0 
+	move.l #16, d0 
+	
+.copyVDP_Palette
+	move.w (a0)+, ADDR_VDP_DATA
+	dbra d0, .copyVDP_Palette
+	
+	move.w #0x8700, ADDR_VDP_CONTROL ; set background color to pal 0, color 8 
+	
+	;Tranfser tile patterns to VRAM 
+	move.w #(SET_VDP_REG_0F|2), ADDR_VDP_CONTROL	; Set autoincrement to 2 bytes
+	move.l	#0x40000000, ADDR_VDP_CONTROL
+	lea Characters, a0 
+	move.l #(3*8*2), d0 
+	
+.copyVDP_Patterns
+	move.w (a0)+, ADDR_VDP_DATA 
+	dbra d0, .copyVDP_Patterns 
+	
+	; Setup plane a's table 
+	move.l #0x40000003, ADDR_VDP_CONTROL
+	move.w #0x0001, ADDR_VDP_DATA
+	move.w #0x0002, ADDR_VDP_DATA
 	
 	; Initialize I/O 
 	move.b #0, ADDR_CTRL1
@@ -143,7 +171,7 @@ Exception:
 
 ; Initial register values to be sent to VDP, thanks to Big Evil Corporation
 VDP_Init_Reg_Vals:
-   dc.b 0x20 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on)
+   dc.b 0x24 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on). Palette mode
    dc.b 0x74 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
    dc.b 0x30 ; 2: Pattern table for Scroll Plane A at 0xC000 (bits 3-5)
    dc.b 0x40 ; 3: Pattern table for Window Plane at 0x10000 (bits 1-5)
@@ -168,4 +196,55 @@ VDP_Init_Reg_Vals:
    dc.b 0x00 ; 22: DMA source address mid byte
    dc.b 0x00 ; 23: DMA source address hi byte, memory-to-VRAM mode (bits 6-7)
  
+ 
+Palette:
+   dc.w 0x0000 ; Colour 0 - Transparent
+   dc.w 0x000E ; Colour 1 - Red
+   dc.w 0x00E0 ; Colour 2 - Green
+   dc.w 0x0E00 ; Colour 3 - Blue
+   dc.w 0x0000 ; Colour 4 - Black
+   dc.w 0x0EEE ; Colour 5 - White
+   dc.w 0x00EE ; Colour 6 - Yellow
+   dc.w 0x008E ; Colour 7 - Orange
+   dc.w 0x0E0E ; Colour 8 - Pink
+   dc.w 0x0808 ; Colour 9 - Purple
+   dc.w 0x0444 ; Colour A - Dark grey
+   dc.w 0x0888 ; Colour B - Light grey
+   dc.w 0x0EE0 ; Colour C - Turquoise
+   dc.w 0x000A ; Colour D - Maroon
+   dc.w 0x0600 ; Colour E - Navy blue
+   dc.w 0x0060 ; Colour F - Dark green
+   
+Characters:
+
+	dc.l 0x00000000	; Nothing 
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
+	
+	dc.l 0x11000110 ; Character 0 - H
+	dc.l 0x11000110
+	dc.l 0x11000110
+	dc.l 0x11111110
+	dc.l 0x11000110
+	dc.l 0x11000110
+	dc.l 0x11000110
+	dc.l 0x00000000
+	
+	dc.l 0x01122000 ; Character 0 - I
+	dc.l 0x00230000
+	dc.l 0x00340000
+	dc.l 0x00450000
+	dc.l 0x00560000
+	dc.l 0x00670000
+	dc.l 0x07788000
+	dc.l 0x00000000
+   
+   
+   
+   
 __end    ; Very last line, end of ROM address
