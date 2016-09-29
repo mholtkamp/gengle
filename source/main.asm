@@ -125,7 +125,7 @@ EntryPoint:
 	move.w #(SET_VDP_REG_0F|2), ADDR_VDP_CONTROL	; Set autoincrement to 2 bytes
 	move.l #0xC0000000, ADDR_VDP_CONTROL
 
-	lea Palette, a0 
+	lea GamePalette+32, a0 
 	move.l #16, d0 
 	
 .copyVDP_Palette
@@ -154,10 +154,16 @@ EntryPoint:
 	move.b #0, ADDR_CTRL2
 	move.b #0, ADDR_EXP 
 	
+	; Testing load tiles 
 	move.l #(TITLE_TILES_WIDTH*TITLE_TILES_HEIGHT), d0  ; param d0.l = tile count 
 	lea TitleTiles, a0								    ; param a0.l = tile data pointer 
 	move.l #32, a1 										; param a1.l = vram address
 	jsr LoadTiles
+	
+	; Testing load palette 
+	move.l #1, d0 
+	lea GamePalette, a0 
+	jsr LoadPalette
 	
 Main:
 

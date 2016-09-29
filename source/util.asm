@@ -56,6 +56,45 @@ LoadTiles:
 	dbra d0, .pattern_copy_loop
 	
 	rts
+
+	
+; ------ SUBROUTINE ------
+; LoadPalette
+;
+; Loads a palette of 16 words into CRAM at the
+; given palette index. 
+;
+; Input:
+;   d0.l = palette index 
+;   a0.l = pointer to palette (source)
+; ------------------------	
+LoadPalette:
+	
+	; First, the VDP command long needs to be generated.
+	move.l d0, -(sp)
+	move.l a0, -(sp)
+	
+	move.l d0, d1 
+	move.l #CRAM_WRITE, d0
+	lsl.l #5, d1 
+	move d1, a0 		; address = palette index * 32 
+	jsr GenerateVDPCommand
+	
+	move.l (sp)+, a0 
+	move.l (sp)+, d0 
+	
+	move.l d2, ADDR_VDP_CONTROL
+	move.l #16, d0 
+	
+.copy_loop
+	move.w (a0)+, d1 
+	move.w d1, ADDR_VDP_DATA
+	dbra d0, .copy_loop
+	
+	rts 
+	
+	
+	
 	
 ; ------ SUBROUTINE ------
 ; GenerateVDPCommand
