@@ -1,8 +1,8 @@
-	IF DEF(SAVER_TILES)
-	SAVER_TILES SET 1 
+	IF ~DEF(SAVER_TILES)
+SAVER_TILES SET 1 
 
-SaverTilesWidth:	dc.w	$4
-SaverTilesHeight:	dc.w	$2
+SAVER_TILES_WIDTH   EQU $4
+SAVER_TILES_HEIGHT	EQU $2
 
 SaverTiles:
 * --------------------------

@@ -1,8 +1,8 @@
-	IF DEF(PURPLE_PEG_TILES)
-	PURPLE_PEG_TILES SET 1 
+	IF ~DEF(PURPLE_PEG_TILES)
+PURPLE_PEG_TILES SET 1 
 
-PurplePegTilesWidth:	dc.w	$2
-PurplePegTilesHeight:	dc.w	$2
+PURPLE_PEG_TILES_WIDTH  EQU $2
+PURPLE_PEG_TILES_HEIGHT EQU $2
 
 PurplePegTiles:
 * --------------------------

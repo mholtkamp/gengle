@@ -1,8 +1,8 @@
-	IF DEF(TITLE_TILES)
-	TITLE_TILES SET 1 
+	IF ~DEF(TITLE_TILES)
+TITLE_TILES SET 1 
 
-TitleTilesWidth:	dc.w	$13
-TitleTilesHeight:	dc.w	$5
+TITLE_TILES_WIDTH  EQU $13
+TITLE_TILES_HEIGHT EQU $5
 
 TitleTiles:
 	dc.l	$22222222

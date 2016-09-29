@@ -1,5 +1,5 @@
-	IF DEF(BLUE_PEG_TILES)
-	BLUE_PEG_TILES SET 1 
+	IF ~DEF(BLUE_PEG_TILES)
+BLUE_PEG_TILES SET 1 
 
 BluePegTilesWidth:	dc.w	$2
 BluePegTilesHeight:	dc.w	$2

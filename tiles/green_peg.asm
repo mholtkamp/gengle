@@ -1,8 +1,8 @@
-	IF DEF(GREEN_PEG_TILES)
-	GREEN_PEG_TILES SET 1 
+	IF ~DEF(GREEN_PEG_TILES)
+GREEN_PEG_TILES SET 1 
 
-GreenPegTilesWidth: 	dc.w	$2
-GreenPegTilesHeight:	dc.w	$2
+GREEN_PEG_TILES_WIDTH  EQU $2
+GREEN_PEG_TILES_HEIGHT EQU $2
 
 GreenPegTiles:
 * --------------------------

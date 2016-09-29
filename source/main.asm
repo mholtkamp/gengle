@@ -1,6 +1,8 @@
 	INCLUDE "include/constants.inc"
+	INCLUDE "include/util.inc"
 
-	ORG 0
+	SECTION MAIN_SECTION ORG(0)
+	
 ; Header data retrieved from https://bigevilcorporation.co.uk/2012/02/28/sega-megadrive-1-getting-started/
 ; What a life-saver!
 ; ******************************************************************
@@ -154,6 +156,10 @@ EntryPoint:
 	move.b #0, ADDR_CTRL2
 	move.b #0, ADDR_EXP 
 	
+	move.l #(TITLE_TILES_WIDTH*TITLE_TILES_HEIGHT), d0  ; param d0.l = tile count 
+	lea TitleTiles, a0								    ; param a0.l = tile data pointer 
+	move.l #32, a1 										; param a1.l = vram address
+	jsr LoadTiles
 	
 Main:
 
