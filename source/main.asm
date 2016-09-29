@@ -1,4 +1,4 @@
-	include "include/constants.inc"
+	INCLUDE "include/constants.inc"
 
 	ORG 0
 ; Header data retrieved from https://bigevilcorporation.co.uk/2012/02/28/sega-megadrive-1-getting-started/
@@ -245,6 +245,11 @@ Characters:
 	dc.l 0x00000000
    
    
-   
-   
+	INCLUDE "tiles/title.asm"
+	INCLUDE "tiles/red_peg.asm"
+	INCLUDE "tiles/blue_peg.asm"
+	INCLUDE "tiles/green_peg.asm"
+	INCLUDE "tiles/purple_peg.asm"
+	INCLUDE "tiles/saver.asm"
+
 __end    ; Very last line, end of ROM address
