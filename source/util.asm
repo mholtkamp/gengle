@@ -1,10 +1,3 @@
-	INCLUDE "include/constants.inc"
-	
-	SECTION UTIL_SECTION ORG($1000)
-	
-	
-;UTIL_CODE_GROUP	GROUP ORG($1000)
-	
 ; ------ SUBROUTINE ------
 ; LoadTiles
 ;
@@ -35,7 +28,7 @@ LoadTiles:
 	move.l (sp)+, d0 
 	
 	; Set VDP command on VDP control port 
-	move.l d1, ADDR_VDP_CONTROL
+	move.l d2, ADDR_VDP_CONTROL
 	
 	; Prepare for pixel copy loop 
 	; a0 = pattern pixel data pointer already
@@ -96,6 +89,7 @@ GenerateVDPCommand:
 	
 	; now get the higher bits of the operation in the lower word of d2 
 	move.b d0, d2 
+	andi.b #$fc, d2 
 	lsl.b #2, d2 	;only shift .b so that the C0+C1 bits dont get shifted out of register
 
 	; Next move the vram address into d3 but rearrange it into the weird-ass VDP format 
@@ -113,3 +107,4 @@ GenerateVDPCommand:
 	or.l d3, d2 		; d2 = VDP command long 
 	
 	rts
+	

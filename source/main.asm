@@ -1,7 +1,5 @@
-	INCLUDE "include/constants.inc"
-	INCLUDE "include/util.inc"
 
-	SECTION MAIN_SECTION ORG(0)
+	ORG 0 
 	
 ; Header data retrieved from https://bigevilcorporation.co.uk/2012/02/28/sega-megadrive-1-getting-started/
 ; What a life-saver!
@@ -250,12 +248,21 @@ Characters:
 	dc.l 0x07788000
 	dc.l 0x00000000
    
-   
+    ; CODE includes 
+   	INCLUDE "source/constants.asm"
+    INCLUDE "source/palette.asm"
+	INCLUDE "source/util.asm"
+	
+	; TILE includes 
+	EVEN
 	INCLUDE "tiles/title.asm"
 	INCLUDE "tiles/red_peg.asm"
 	INCLUDE "tiles/blue_peg.asm"
 	INCLUDE "tiles/green_peg.asm"
 	INCLUDE "tiles/purple_peg.asm"
 	INCLUDE "tiles/saver.asm"
+	
+	; MAP includes 
+	EVEN 
 
 __end    ; Very last line, end of ROM address
