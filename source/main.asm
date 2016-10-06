@@ -134,16 +134,6 @@ EntryPoint:
 	
 	move.w #0x8700, ADDR_VDP_CONTROL ; set background color to pal 0, color 8 
 	
-	;Tranfser tile patterns to VRAM 
-	move.w #(SET_VDP_REG_0F|2), ADDR_VDP_CONTROL	; Set autoincrement to 2 bytes
-	move.l	#0x40000000, ADDR_VDP_CONTROL
-	lea Characters, a0 
-	move.l #(3*8*2), d0 
-	
-.copyVDP_Patterns
-	move.w (a0)+, ADDR_VDP_DATA 
-	dbra d0, .copyVDP_Patterns 
-	
 	; Setup plane a's table 
 	move.l #0x40000003, ADDR_VDP_CONTROL
 	move.w #0x0001, ADDR_VDP_DATA
@@ -160,6 +150,11 @@ EntryPoint:
 	move.l #(TITLE_TILE_INDEX*32), a1 				    ; param a1.l = vram address
 	jsr LoadTiles
 	
+	move.l #1, d0 
+	lea BlankPattern, a0 
+	move.l #0, a1 
+	jsr LoadTiles
+	
 	; Testing load palette 
 	move.l #1, d0 
 	lea GamePalette, a0 
@@ -168,6 +163,16 @@ EntryPoint:
 	; Clearing scroll a plane map 
 	move.l #ADDR_SCROLL_A_NAME_TABLE, a0 
 	move.l #5, d0 
+	jsr ClearMap
+	
+	; Clearing scroll b plane map 
+	move.l #ADDR_SCROLL_B_NAME_TABLE, a0 
+	move.l #0, d0 
+	jsr ClearMap
+	
+	; Clearing window plane map 
+	move.l #ADDR_WINDOW_NAME_TABLE, a0 
+	move.l #0, d0 
 	jsr ClearMap
 	
 	; Testing load Genggle map entries 
@@ -198,7 +203,7 @@ VDP_Init_Reg_Vals:
    dc.b 0x24 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on). Palette mode
    dc.b 0x74 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
    dc.b 0x30 ; 2: Pattern table for Scroll Plane A at 0xC000 (bits 3-5)
-   dc.b 0x40 ; 3: Pattern table for Window Plane at 0x10000 (bits 1-5)
+   dc.b 0x20 ; 3: Pattern table for Window Plane at 0x8000 (bits 1-5)
    dc.b 0x05 ; 4: Pattern table for Scroll Plane B at 0xA000 (bits 0-2)
    dc.b 0x70 ; 5: Sprite table at 0xE000 (bits 0-6)
    dc.b 0x00 ; 6: Unused
@@ -239,7 +244,8 @@ Palette:
    dc.w 0x0600 ; Colour E - Navy blue
    dc.w 0x0060 ; Colour F - Dark green
    
-Characters:
+	EVEN
+BlankPattern:
 
 	dc.l 0x00000000	; Nothing 
 	dc.l 0x00000000
@@ -248,24 +254,6 @@ Characters:
 	dc.l 0x00000000
 	dc.l 0x00000000
 	dc.l 0x00000000
-	dc.l 0x00000000
-	
-	dc.l 0x11000110 ; Character 0 - H
-	dc.l 0x11000110
-	dc.l 0x11000110
-	dc.l 0x11111110
-	dc.l 0x11000110
-	dc.l 0x11000110
-	dc.l 0x11000110
-	dc.l 0x00000000
-	
-	dc.l 0x01122000 ; Character 0 - I
-	dc.l 0x00230000
-	dc.l 0x00340000
-	dc.l 0x00450000
-	dc.l 0x00560000
-	dc.l 0x00670000
-	dc.l 0x07788000
 	dc.l 0x00000000
    
     ; CODE includes 
