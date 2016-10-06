@@ -1,8 +1,8 @@
 	IF ~DEF(BLUE_PEG_TILES)
 BLUE_PEG_TILES SET 1 
 
-BluePegTilesWidth:	dc.w	$2
-BluePegTilesHeight:	dc.w	$2
+BluePegTilesWidth EQU	$2
+BluePegTilesHeight EQU	$2
 
 BluePegTiles:
 * --------------------------

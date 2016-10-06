@@ -157,13 +157,27 @@ EntryPoint:
 	; Testing load tiles 
 	move.l #(TITLE_TILES_WIDTH*TITLE_TILES_HEIGHT), d0  ; param d0.l = tile count 
 	lea TitleTiles, a0								    ; param a0.l = tile data pointer 
-	move.l #32, a1 										; param a1.l = vram address
+	move.l #(TITLE_TILE_INDEX*32), a1 				    ; param a1.l = vram address
 	jsr LoadTiles
 	
 	; Testing load palette 
 	move.l #1, d0 
 	lea GamePalette, a0 
 	jsr LoadPalette
+	
+	; Clearing scroll a plane map 
+	move.l #ADDR_SCROLL_A_NAME_TABLE, a0 
+	move.l #5, d0 
+	jsr ClearMap
+	
+	; Testing load Genggle map entries 
+	move.l #TITLE_MAP_WIDTH, d0 
+	move.l #TITLE_MAP_HEIGHT, d1 
+	move.l #1, d2 
+	move.l #(TITLE_TILE_INDEX), d3 
+	lea TitleMap, a0 
+	move.l #TITLE_ADDR, a1
+	jsr LoadMap
 	
 Main:
 
@@ -270,5 +284,8 @@ Characters:
 	
 	; MAP includes 
 	EVEN 
+	INCLUDE "maps/title.asm"
+	
+	
 
 __end    ; Very last line, end of ROM address

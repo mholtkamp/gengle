@@ -22,13 +22,13 @@ LoadTiles:
 	move.l a1, a0 			; a0 = vram memory location 
 	jsr GenerateVDPCommand  ; d1 = vdp command long 
 	
+	; Set VDP command on VDP control port 
+	move.l d2, ADDR_VDP_CONTROL
+	
 	; restore regs 
 	move.l (sp)+, a1
 	move.l (sp)+, a0 
 	move.l (sp)+, d0 
-	
-	; Set VDP command on VDP control port 
-	move.l d2, ADDR_VDP_CONTROL
 	
 	; Prepare for pixel copy loop 
 	; a0 = pattern pixel data pointer already
@@ -53,7 +53,8 @@ LoadTiles:
 	move.w (a0)+, ADDR_VDP_DATA
 	move.w (a0)+, ADDR_VDP_DATA
 	
-	dbra d0, .pattern_copy_loop
+	subq.l #1, d0
+	bne .pattern_copy_loop
 	
 	rts
 
@@ -80,21 +81,121 @@ LoadPalette:
 	move d1, a0 		; address = palette index * 32 
 	jsr GenerateVDPCommand
 	
+	move.l d2, ADDR_VDP_CONTROL
+	
 	move.l (sp)+, a0 
 	move.l (sp)+, d0 
 	
-	move.l d2, ADDR_VDP_CONTROL
 	move.l #16, d0 
 	
 .copy_loop
 	move.w (a0)+, d1 
 	move.w d1, ADDR_VDP_DATA
-	dbra d0, .copy_loop
+	subq.l #1, d0
+	bne .copy_loop
 	
 	rts 
 	
 	
+; ------ SUBROUTINE ------
+; LoadMap
+;
+; Loads a map into VRAM at the specified address.
+; Map data should be one word per map entry. 
+;
+; Input:
+;   d0.l = map width
+;   d1.l = map height
+;   d2.l = color palette to use (0-3)
+;   d3.l = tile index to offset all map entries
+;   a0.l = pointer to map source data (source)
+;   a1.l = pointer to VRAM location (destination)
+; ------------------------	
+LoadMap:
+
+	; shift the color palette to place the bits in the correct location
+	; that the pattern name expects (bits 14/13)
+	andi.w #3, d2 		; in case more bits than 1/0 were set
+	ror.w #3, d2 		; bits 1/0  to 14/13
 	
+	; Make a copy of map width so we can restore the 
+	; counter between filling rows into VRAM
+	move.l d0, d4
+	
+.loop_row
+	; save registers
+	move.l d0, -(sp)
+	move.l d1, -(sp)
+	move.l d2, -(sp)
+	move.l d3, -(sp)
+	move.l d4, -(sp)
+	move.l a0, -(sp)
+	move.l a1, -(sp)
+	
+	; generate the vdp command needed to write to vram
+	move.l #VRAM_WRITE, d0 
+	move.l a1, a0 
+	jsr GenerateVDPCommand
+	move.l d2, ADDR_VDP_CONTROL		; let VDP know that we are going to write to VRAM
+	
+	; restore registers from stack 
+	move.l (sp)+, a1
+	move.l (sp)+, a0
+	move.l (sp)+, d4 
+	move.l (sp)+, d3 
+	move.l (sp)+, d2 
+	move.l (sp)+, d1
+	move.l (sp)+, d0 
+
+.loop 
+	move.w (a0)+, d5 
+	add.w d3, d5					; offset the map entry value
+	move.w d5, ADDR_VDP_DATA
+	subq.l #1, d0
+	bne .loop 
+	
+	; end of map row
+	move.l d4, d0 		; restore map width in hori counter 
+	adda.l #(2*PLANE_WIDTH), a1 	; make a1 point to one row below in VRAM 
+	subq.l #1, d1
+	bne .loop_row 
+	
+	rts 
+	
+; ------ SUBROUTINE ------
+; ClearMap
+;
+; Sets the pattern number for each entry in the table to the given
+; pattern number.
+;
+; Input:
+;   d0.l = pattern number 
+;   a0.l = address of map to clear
+; ------------------------
+ClearMap:
+
+	; push current reg values 
+	move.l d0, -(sp)
+	move.l a0, -(sp)
+	
+	; Get VDP command and then write to control port
+	move.l #VRAM_WRITE, d0 
+	jsr GenerateVDPCommand
+	move.l d2, ADDR_VDP_CONTROL
+	
+	; Restore registers
+	move.l (sp)+, a0 
+	move.l (sp)+, d0 
+	
+	; loop counter = num of entries to clear = width*height = 64*32
+	move.l #(PLANE_WIDTH*PLANE_HEIGHT), d1 
+	
+.loop
+	move.w d0, ADDR_VDP_DATA
+	subq.l #1, d1 
+	bne .loop 
+	
+	rts
 	
 ; ------ SUBROUTINE ------
 ; GenerateVDPCommand
