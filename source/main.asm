@@ -93,134 +93,42 @@
 
 
 EntryPoint:
-	tst.w ADDR_MYSTERY_RESET
-	bne Main
-	tst.w ADDR_RESET
-	bne Main
-	
-	; First, write the TMSS so that the VDP doesn't get locked
-	;move.l #'SEGA', ADDR_TMSS
-	move.b 0x00A10001, d0      ; Move Megadrive hardware version to d0
-	andi.b #0x0F, d0           ; The version is stored in last four bits, so mask it with 0F
-	beq .skip                  ; If version is equal to 0, skip TMSS signature
-	move.l #'SEGA', 0x00A14000 ; Move the string "SEGA" to 0xA14000
-	.skip:
-	
-	;andi.l d0, 
+	; Set the status register to turn on supervisor mode 
 	move #0x2000, sr
 	
-	;Clear RAM
-	move.l #0, d0 
-	move.l #0, a0 
-	move.l #0x3fff, d1 
+	jsr Init
+	jsr LoadStart
+	move.l #STATE_START, GameState
 	
-.clear_ram_loop 
-	move.l d0, -(a0)
-	subq.l #1, d1
-	bne .clear_ram_loop 
-	
-	; Initialize VDP
-	move.l #VDP_Init_Reg_Vals, a0 
-	move.l #24, d0 
-	move.l #0x00008000, d1 
-	
-.copyVDP_Reg
-	move.b (a0)+, d1 	; move the register val into lowest byte of d1 
-	move.w d1, ADDR_VDP_CONTROL 
-	add.w #0x0100, d1 
-	dbra d0, .copyVDP_Reg
-	
-	; Set IN I/O direction, interrupts off, on all ports
-	move.b #0x00, 0x000A10009 ; Controller port 1 CTRL
-	move.b #0x00, 0x000A1000B ; Controller port 2 CTRL
-	move.b #0x00, 0x000A1000D ; EXP port CTRL
-	
-	; Transfer palette 
-	move.w #(SET_VDP_REG_0F|2), ADDR_VDP_CONTROL	; Set autoincrement to 2 bytes
-	move.l #0xC0000000, ADDR_VDP_CONTROL
-
-	lea GamePalette+32, a0 
-	move.l #16, d0 
-	
-.copyVDP_Palette
-	move.w (a0)+, ADDR_VDP_DATA
-	dbra d0, .copyVDP_Palette
-	
-	move.w #0x8700, ADDR_VDP_CONTROL ; set background color to pal 0, color 8 
-	
-	; Setup plane a's table 
-	move.l #0x40000003, ADDR_VDP_CONTROL
-	move.w #0x0001, ADDR_VDP_DATA
-	move.w #0x0002, ADDR_VDP_DATA
-	
-	; Initialize I/O 
-	move.b #0, ADDR_CTRL1
-	move.b #0, ADDR_CTRL2
-	move.b #0, ADDR_EXP 
-	
-	; Testing load tiles 
-	move.l #(TITLE_TILES_WIDTH*TITLE_TILES_HEIGHT), d0  ; param d0.l = tile count 
-	lea TitleTiles, a0								    ; param a0.l = tile data pointer 
-	move.l #(TITLE_TILE_INDEX*32), a1 				    ; param a1.l = vram address
-	jsr LoadTiles
-	
-	move.l #1, d0 
-	lea BlankPattern, a0 
-	move.l #0, a1 
-	jsr LoadTiles
-	
-	; Testing load palette 
-	move.l #1, d0 
-	lea GamePalette, a0 
-	jsr LoadPalette
-	
-	; Clearing scroll a plane map 
-	move.l #ADDR_SCROLL_A_NAME_TABLE, a0 
-	move.l #5, d0 
-	jsr ClearMap
-	
-	; Clearing scroll b plane map 
-	move.l #ADDR_SCROLL_B_NAME_TABLE, a0 
-	move.l #0, d0 
-	jsr ClearMap
-	
-	; Clearing window plane map 
-	move.l #ADDR_WINDOW_NAME_TABLE, a0 
-	move.l #0, d0 
-	jsr ClearMap
-	
-	; Testing load Genggle map entries 
-	move.l #TITLE_MAP_WIDTH, d0 
-	move.l #TITLE_MAP_HEIGHT, d1 
-	move.l #1, d2 
-	move.l #(TITLE_TILE_INDEX), d3 
-	lea TitleMap, a0 
-	move.l #TITLE_ADDR, a1
-	jsr LoadMap
-	
-Main:
+Main_Loop:
 
 	jsr UpdateButtons
-	move.w ButtonsDown, d0 
-	btst #BUTTON_DOWN, d0
-	bne Main 
 	
-	; Test input by clearing screen if button is down 
-	move.l #ADDR_SCROLL_A_NAME_TABLE, a0 
-	move.l #1, d0 
-	jsr ClearMap
+	;move.l GameState, d0 
+	;lsl.l #2, d0 
+	;lea UpdatePointers, a0 
+	;add.l d0, a0 
+	;jsr (a0)
 	
-	jmp Main        ; Jump back up to 'Loop'
+	move.l GameState, d0 
+	cmpi.l #STATE_START, d0 
+	bne .check_aim
+	jsr UpdateStart
+	jmp Main_Loop
+
+.check_aim
+	cmpi.l #STATE_AIM, d0 
+	bne .check_resolve 
+	jsr UpdateAim
+	jmp Main_Loop
+	
+.check_resolve
+	
+	
+	jmp Main_Loop        ; go to next iteration of game loop
  
 HBlankInterrupt:
 VBlankInterrupt:
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
 	nop
 	nop
 	nop
@@ -276,25 +184,11 @@ VDP_Init_Reg_Vals:
    dc.b 0x00 ; 21: DMA source address lo byte
    dc.b 0x00 ; 22: DMA source address mid byte
    dc.b 0x00 ; 23: DMA source address hi byte, memory-to-VRAM mode (bits 6-7)
- 
- 
-Palette:
-   dc.w 0x0000 ; Colour 0 - Transparent
-   dc.w 0x000E ; Colour 1 - Red
-   dc.w 0x00E0 ; Colour 2 - Green
-   dc.w 0x0E00 ; Colour 3 - Blue
-   dc.w 0x0000 ; Colour 4 - Black
-   dc.w 0x0EEE ; Colour 5 - White
-   dc.w 0x00EE ; Colour 6 - Yellow
-   dc.w 0x008E ; Colour 7 - Orange
-   dc.w 0x0E0E ; Colour 8 - Pink
-   dc.w 0x0808 ; Colour 9 - Purple
-   dc.w 0x0444 ; Colour A - Dark grey
-   dc.w 0x0888 ; Colour B - Light grey
-   dc.w 0x0EE0 ; Colour C - Turquoise
-   dc.w 0x000A ; Colour D - Maroon
-   dc.w 0x0600 ; Colour E - Navy blue
-   dc.w 0x0060 ; Colour F - Dark green
+   
+;UpdatePointers:
+;   dc.l UpdateStart
+;   dc.l UpdateAim
+   
    
 	EVEN
 BlankPattern:
@@ -312,6 +206,9 @@ BlankPattern:
    	INCLUDE "source/constants.asm"
     INCLUDE "source/palette.asm"
 	INCLUDE "source/util.asm"
+	INCLUDE "source/start.asm"
+	INCLUDE "source/init.asm"
+	INCLUDE "source/game.asm"
 	
 	; TILE includes 
 	EVEN
@@ -326,14 +223,8 @@ BlankPattern:
 	EVEN 
 	INCLUDE "maps/title.asm"
 	
-	; BSS data 
-;BssData:	GROUP BSS, ORG($ff0000)
-;ButtonsDown:
-;	ds.w 1
-;GameState:
-;	ds.l 1 
-
-ButtonsDown EQU $ff0000 
+	; BSS addresses 
+	INCLUDE "source/bss.asm"
 	
 
 __end    ; Very last line, end of ROM address

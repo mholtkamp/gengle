@@ -263,11 +263,11 @@ UpdateButtons:
 	
 	; Request the high part of controller status word 
 	; nop's are put in to account for the delay
-	;move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
-	;nop 
-	;nop
-	;nop
-	;nop
+	move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
+	nop 
+	nop
+	nop
+	nop
 	move.b ADDR_CONTROLLER_DATA_PORT, d0 
 	rol.w #8, d0 			; place this byte into the high part of d0 
 	
@@ -279,7 +279,7 @@ UpdateButtons:
 	nop
 	nop
 	move.b ADDR_CONTROLLER_DATA_PORT, d0 
-	move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
+	;move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
 	
 	; Move the contents of d0 into ButtonsDown 
 	move.w d0, ButtonsDown
