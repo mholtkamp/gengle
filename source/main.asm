@@ -98,6 +98,17 @@ EntryPoint:
 	tst.w ADDR_RESET
 	bne Main
 	
+	; First, write the TMSS so that the VDP doesn't get locked
+	;move.l #'SEGA', ADDR_TMSS
+	move.b 0x00A10001, d0      ; Move Megadrive hardware version to d0
+	andi.b #0x0F, d0           ; The version is stored in last four bits, so mask it with 0F
+	beq .skip                  ; If version is equal to 0, skip TMSS signature
+	move.l #'SEGA', 0x00A14000 ; Move the string "SEGA" to 0xA14000
+	.skip:
+	
+	;andi.l d0, 
+	move #0x2000, sr
+	
 	;Clear RAM
 	move.l #0, d0 
 	move.l #0, a0 
@@ -105,13 +116,11 @@ EntryPoint:
 	
 .clear_ram_loop 
 	move.l d0, -(a0)
-	dbra d1, .clear_ram_loop 
-	
-	; First, write the TMSS so that the VDP doesn't get locked
-	move.l #'SEGA', ADDR_TMSS
+	subq.l #1, d1
+	bne .clear_ram_loop 
 	
 	; Initialize VDP
-	lea VDP_Init_Reg_Vals, a0 
+	move.l #VDP_Init_Reg_Vals, a0 
 	move.l #24, d0 
 	move.l #0x00008000, d1 
 	
@@ -120,6 +129,11 @@ EntryPoint:
 	move.w d1, ADDR_VDP_CONTROL 
 	add.w #0x0100, d1 
 	dbra d0, .copyVDP_Reg
+	
+	; Set IN I/O direction, interrupts off, on all ports
+	move.b #0x00, 0x000A10009 ; Controller port 1 CTRL
+	move.b #0x00, 0x000A1000B ; Controller port 2 CTRL
+	move.b #0x00, 0x000A1000D ; EXP port CTRL
 	
 	; Transfer palette 
 	move.w #(SET_VDP_REG_0F|2), ADDR_VDP_CONTROL	; Set autoincrement to 2 bytes
@@ -186,22 +200,60 @@ EntryPoint:
 	
 Main:
 
-	move.l #0xF, d0 ; Move 15 into register d0
-	move.l d0, d1   ; Move contents of register d0 into d1
+	jsr UpdateButtons
+	move.w ButtonsDown, d0 
+	btst #BUTTON_DOWN, d0
+	bne Main 
+	
+	; Test input by clearing screen if button is down 
+	move.l #ADDR_SCROLL_A_NAME_TABLE, a0 
+	move.l #1, d0 
+	jsr ClearMap
+	
 	jmp Main        ; Jump back up to 'Loop'
  
 HBlankInterrupt:
 VBlankInterrupt:
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 	rte   ; Return from Exception
  
 Exception:
 	rte   ; Return from Exception
 	
 
+Z80Data:
+   dc.w 0xaf01, 0xd91f
+   dc.w 0x1127, 0x0021
+   dc.w 0x2600, 0xf977
+   dc.w 0xedb0, 0xdde1
+   dc.w 0xfde1, 0xed47
+   dc.w 0xed4f, 0xd1e1
+   dc.w 0xf108, 0xd9c1
+   dc.w 0xd1e1, 0xf1f9
+   dc.w 0xf3ed, 0x5636
+   dc.w 0xe9e9, 0x8104
+   dc.w 0x8f01
+
+PSGData:
+   dc.w 0x9fbf, 0xdfff
+   
 ; Initial register values to be sent to VDP, thanks to Big Evil Corporation
 VDP_Init_Reg_Vals:
-   dc.b 0x24 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on). Palette mode
-   dc.b 0x74 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
+   dc.b 0x04 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on). Palette mode
+   dc.b 0x54 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
    dc.b 0x30 ; 2: Pattern table for Scroll Plane A at 0xC000 (bits 3-5)
    dc.b 0x20 ; 3: Pattern table for Window Plane at 0x8000 (bits 1-5)
    dc.b 0x05 ; 4: Pattern table for Scroll Plane B at 0xA000 (bits 0-2)
@@ -274,6 +326,14 @@ BlankPattern:
 	EVEN 
 	INCLUDE "maps/title.asm"
 	
+	; BSS data 
+;BssData:	GROUP BSS, ORG($ff0000)
+;ButtonsDown:
+;	ds.w 1
+;GameState:
+;	ds.l 1 
+
+ButtonsDown EQU $ff0000 
 	
 
 __end    ; Very last line, end of ROM address

@@ -248,3 +248,41 @@ GenerateVDPCommand:
 	
 	rts
 	
+; ------ SUBROUTINE ------
+; UpdateButtons
+;
+; Grabs the state of buttons from the controller.
+; This subroutine places the updated values in the ButtonsDown
+; word in BSS memory. Status of an individual button can be
+; checked by using btst.w #BUTTON_X, ButtonsDown
+; If the bit is set, then that button is down.
+; If cleared, then that button is up.
+; ------------------------
+UpdateButtons:
+	clr.l d0 
+	
+	; Request the high part of controller status word 
+	; nop's are put in to account for the delay
+	;move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
+	;nop 
+	;nop
+	;nop
+	;nop
+	move.b ADDR_CONTROLLER_DATA_PORT, d0 
+	rol.w #8, d0 			; place this byte into the high part of d0 
+	
+	; Request the low part of controller status word 
+	; nop's are put in to account for the delay
+	move.b #GET_CONTROLLER_LOW, ADDR_CONTROLLER_DATA_PORT
+	nop 
+	nop
+	nop
+	nop
+	move.b ADDR_CONTROLLER_DATA_PORT, d0 
+	move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
+	
+	; Move the contents of d0 into ButtonsDown 
+	move.w d0, ButtonsDown
+	
+	rts 
+
