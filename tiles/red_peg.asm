@@ -2,9 +2,9 @@
 RED_PEG_TILES SET 1
 
 RED_PEG_TILES_WIDTH EQU $2
-RED_PEG_TILES_WIDTH EQU $2
+RED_PEG_TILES_HEIGHT EQU $2
 
-RegPegTiles:
+RedPegTiles:
 * --------------------------
 	dc.l	$00000222
 	dc.l	$00022222

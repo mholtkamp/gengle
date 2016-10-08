@@ -51,10 +51,35 @@ Init:
 	jsr LoadTiles
 	
 	; Load the game's tiles 
-	move.l #(TITLE_TILES_WIDTH*TITLE_TILES_HEIGHT), d0  ; param d0.l = tile count 
+	move.l #(TITLE_TILES_COUNT), d0  ; param d0.l = tile count 
 	lea TitleTiles, a0								    ; param a0.l = tile data pointer 
 	move.l #(TITLE_TILE_INDEX*32), a1 				    ; param a1.l = vram address
 	jsr LoadTiles
+	
+	move.l #(RED_PEG_TILES_WIDTH*RED_PEG_TILES_HEIGHT), d0 
+	lea RedPegTiles, a0 
+	move.l #(RED_PEG_TILE_INDEX*32), a1 
+	jsr LoadTiles
+	
+	move.l #(BLUE_PEG_TILES_WIDTH*BLUE_PEG_TILES_HEIGHT), d0 
+	lea BluePegTiles, a0 
+	move.l #(BLUE_PEG_TILE_INDEX*32), a1 
+	jsr LoadTiles
+	
+	move.l #(PURPLE_PEG_TILES_WIDTH*PURPLE_PEG_TILES_HEIGHT), d0 
+	lea PurplePegTiles, a0 
+	move.l #(PURPLE_PEG_TILE_INDEX*32), a1 
+	jsr LoadTiles
+	
+	move.l #(GREEN_PEG_TILES_WIDTH*GREEN_PEG_TILES_HEIGHT), d0 
+	lea GreenPegTiles, a0 
+	move.l #(GREEN_PEG_TILE_INDEX*32), a1 
+	jsr LoadTiles
+	
+	move.l #(SAVER_TILES_WIDTH*SAVER_TILES_HEIGHT), d0 
+	lea SaverTiles, a0 
+	move.l #(SAVER_TILE_INDEX*32), a1 
+	jsr LoadTiles 
 	
 	; Load the game's palette
 	move.l #1, d0 

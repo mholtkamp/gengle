@@ -102,6 +102,7 @@ EntryPoint:
 	
 Main_Loop:
 
+	jsr WaitVblank
 	jsr UpdateButtons
 	
 	;move.l GameState, d0 
@@ -128,6 +129,8 @@ Main_Loop:
 	jmp Main_Loop        ; go to next iteration of game loop
  
 HBlankInterrupt:
+	rte 
+	
 VBlankInterrupt:
 	nop
 	nop
@@ -136,6 +139,7 @@ VBlankInterrupt:
 	nop
 	nop
 	nop
+	move.l #1, VblankFlag
 	rte   ; Return from Exception
  
 Exception:
@@ -161,7 +165,7 @@ PSGData:
 ; Initial register values to be sent to VDP, thanks to Big Evil Corporation
 VDP_Init_Reg_Vals:
    dc.b 0x04 ; 0: Horiz. interrupt on, plus bit 2 (unknown, but docs say it needs to be on). Palette mode
-   dc.b 0x54 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
+   dc.b 0x74 ; 1: Vert. interrupt on, display on, DMA on, V28 mode (28 cells vertically), + bit 2
    dc.b 0x30 ; 2: Pattern table for Scroll Plane A at 0xC000 (bits 3-5)
    dc.b 0x20 ; 3: Pattern table for Window Plane at 0x8000 (bits 1-5)
    dc.b 0x05 ; 4: Pattern table for Scroll Plane B at 0xA000 (bits 0-2)

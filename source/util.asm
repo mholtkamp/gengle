@@ -286,3 +286,19 @@ UpdateButtons:
 	
 	rts 
 
+; ------ SUBROUTINE ------
+; WaitVblank
+;
+; Do not return from subroutine until the the vblank flag 
+; is set by the vertical blank interrupt handler
+; ------------------------
+WaitVblank:
+
+	; Keep checking if the vblank flag has been set
+	move.l VblankFlag, d0 
+	cmpi.l #1, d0 
+	bne WaitVblank
+	
+	; The vblank flag was set, clear it and return 
+	move.l #0, VblankFlag
+	rts 

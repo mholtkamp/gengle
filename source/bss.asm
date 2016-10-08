@@ -7,3 +7,4 @@ Cursor EQU (Saver+SAVER_DATA_SIZE)
 ; used as such in the program.
 ButtonsDown EQU (Cursor+CURSOR_DATA_SIZE)
 GameState EQU (ButtonsDown+4)
+VblankFlag EQU (GameState+4)
