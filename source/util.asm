@@ -302,3 +302,56 @@ WaitVblank:
 	; The vblank flag was set, clear it and return 
 	move.l #0, VblankFlag
 	rts 
+
+; ------ SUBROUTINE ------
+; ResetAllSprites
+;
+; Places all the genesis sprites offscreen at position 
+; x = SPRITE_DISABLE_X, y = SPRITE_DISABLE_Y
+; This effectively disables the sprites.
+; Apparently there is some weird masking property that gets 
+; triggered when the sprites x position is 0. Haven't looked 
+; into this, but this is the reason I currently do not have the 
+; x position set to 0.
+; ------------------------	
+ResetAllSprites:
+	
+	; generate the VDP command for writing to sprite attribute table 
+	move.l #VRAM_WRITE, d0 
+	move.l #ADDR_SPRITE_NAME_TABLE, a0 
+	jsr GenerateVDPCommand
+	
+	; Set VDP command on VDP control port 
+	move.l d2, ADDR_VDP_CONTROL
+	
+	; loop through all sprites and put them off screen
+	move.l #0, d0 
+	move.l #ADDR_SPRITE_NAME_TABLE, a0 
+	clr.l d1 
+	
+.loop 
+	; set the vertical position to SPRITE_DISABLE_Y 
+	move.w #SPRITE_DISABLE_Y, ADDR_VDP_DATA 	; RESET vertical position of sprite 
+	move.w d0, d1 			; get the sprite index 
+	addq.w #1, d1 			; increment by 1 to get the index of next sprite in link list 
+	ori.w #$0500, d1 		; or with vert size = 1, hori size = 1 for default size (16x16 pixels)
+	move.w d1, ADDR_VDP_DATA					; RESET hori/vert size and link number 
+	move.w #$2037, ADDR_VDP_DATA				; RESET (prio=0, pal=1, flips=0, pattern = RED_PEG_TILE_INDEX)
+	move.w #SPRITE_DISABLE_X, ADDR_VDP_DATA		; RESET horizontal position of sprite 
+	
+	; increment counter and branch if less than num sprites 
+	addq.l #1, d0 
+	cmpi.l #MAX_SPRITES, d0 
+	bne .loop 
+	
+	; Set the link of the last sprite to 0
+	move.l #VRAM_WRITE, d0 
+	move.l #(ADDR_SPRITE_NAME_TABLE+8*79+2), a0 
+	jsr GenerateVDPCommand
+	
+	; Set VDP command on VDP control port 
+	move.l d2, ADDR_VDP_CONTROL
+	
+	move.w #$0500, ADDR_VDP_DATA ; set link to 0 (finished)
+	
+	rts 

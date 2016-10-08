@@ -104,5 +104,8 @@ Init:
 	move.l #0, d0 
 	jsr ClearMap
 	
+	; Reset all sprites 
+	jsr ResetAllSprites 
+	
 .return 
 	rts 
