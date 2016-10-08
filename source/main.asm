@@ -100,6 +100,13 @@ EntryPoint:
 	jsr LoadStart
 	move.l #STATE_START, GameState
 	
+	; BEGIN ---TEST---
+	move.l #0, d0 
+	move.l #30, d1
+	move.l #120, d2
+	jsr SetSpritePosition
+	; END ---TEST---
+	
 Main_Loop:
 
 	jsr WaitVblank

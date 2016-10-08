@@ -355,3 +355,38 @@ ResetAllSprites:
 	move.w #$0500, ADDR_VDP_DATA ; set link to 0 (finished)
 	
 	rts 
+
+; ------ SUBROUTINE ------
+; SetSpritePosition
+;
+; Positions the sprite with the given index at 
+; the on-screen positions in x = d1, y = d2 
+; 
+; Input:
+;   d0.l = sprite index (0-79)
+;   d1.l = on-screen x-pos 
+;   d2.l = on-screen y-pos 
+; ------------------------	
+SetSpritePosition:
+	; first get the true sprite coordinates, not the screen coords 
+	addi.l #128, d1 
+	addi.l #128, d2 
+	
+	; figure out the VRAM address that we need to write the YPOS to 
+	lsl.l #3, d0 	; mult the index by 3 to get the offset in bytes into table.
+	move.l #VDP_COM_WRITE_SPRITE, d3 		; the vdp command for writing to first entry in sprite table 
+	swap.w d0 								; swap d0 to get the byte offset into the upper word 
+	add.l d0, d3 
+	move.l d3, ADDR_VDP_CONTROL				; let the VDP know we are going to write to the sprite attrib location 
+	
+	move.w d2, ADDR_VDP_DATA				; write the new y pos 
+	
+	; calculate the VRAM address that we need to write to the XPOS 
+	; d3 already contains the command for writing to ypos, so we just need to 
+	; offset it by 6 bytes to point to the xpos attribute. 
+	addi.l #$00060000, d3 
+	move.l d3, ADDR_VDP_CONTROL 
+	
+	move.w d1, ADDR_VDP_DATA				; write the new x pos 
+	
+	rts 
