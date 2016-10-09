@@ -9,4 +9,5 @@ GameState EQU (ButtonsDown+4)
 VblankFlag EQU (GameState+4)
 AimAngle EQU (VblankFlag+4)
 Level EQU (AimAngle+4) 
+BallCount EQU (Level+4)
 

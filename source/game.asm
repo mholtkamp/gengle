@@ -15,11 +15,26 @@ LoadGame:
 	
 	; @@ TODO: Load the scrolling background here
 	
+	jsr LoadLevel
+	
+	rts
+	
+; ------ SUBROUTINE ------
+; LoadLevel
+;
+; Loads the level based on the value in 
+; Level global variable.
+; ------------------------	
+LoadLevel:
+
 	; Reset aim angle 
 	move.l #AIM_START_ANGLE, AimAngle 
 	move.l #0, Level
 	
-	rts
+	; Reset ball count 
+	move.l #5, BallCount 
+	
+	rts 
 	
 ; ------ SUBROUTINE ------
 ; UpdateAim
@@ -183,5 +198,26 @@ UpdateResolve:
 
 	lea Ball, a0 
 	jsr Ball_Update 
+	
+	; Check if the ball has passed the fallout threshold 
+	lea Ball, a0 
+	move.l M_BALL_Y(a0), d0 
+	cmpi.l #FALLOUT_Y, d0 
+	blt .return 
+	
+	; Ball has passed fallout_y, so decrement BallCount 
+	; and if ball count is 0, then go to lose state 
+	move.l BallCount, d0 
+	subq.l #1, d0 
+	move.l d0, BallCount
+	cmpi.l #0, d0 
+	bne .set_state_aim
+	move.l #STATE_LOSE, GameState
+	jsr LoadStart
+	jmp .return 
+.set_state_aim 
+	move.l #STATE_AIM, GameState
+	
+.return 
 	rts
 	

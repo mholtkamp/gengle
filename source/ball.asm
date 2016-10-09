@@ -64,6 +64,30 @@ Ball_Update:
 	add.l d0, d1 
 	move.l d1, M_BALL_Y(a0)
 	
+	; Check if ball goes past left or right bounds 
+	lea Ball, a0 
+	move.l M_BALL_X(a0), d0 
+	cmpi.l #LEFT_BOUND, d0 
+	blt .bounce_left
+	cmpi.l #RIGHT_BOUND, d0 
+	bgt .bounce_right
+	jmp .update_sprite 
+	
+.bounce_left
+	move.l #LEFT_BOUND, M_BALL_X(a0)
+	jmp .reverse_xvel
+	
+.bounce_right 
+	move.l #RIGHT_BOUND, M_BALL_X(a0)
+	; jmp .reverse_xvel
+
+.reverse_xvel
+	move.l M_BALL_XVEL(a0), d0 
+	neg.l d0 
+	move.l d0, M_BALL_XVEL(a0)
+	; jmp .update_sprite
+	
+.update_sprite
 	; Update sprite 
 	jsr Ball_UpdateSprite
 	

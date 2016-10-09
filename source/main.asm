@@ -132,7 +132,12 @@ Main_Loop:
 	jmp Main_Loop
 	
 .check_lose 
+	cmpi.l #STATE_LOSE, d0 
+	bne .check_win 
+	move.l #STATE_START, GameState
+	jmp Main_Loop
 	
+.check_win
 	
 	jmp Main_Loop        ; go to next iteration of game loop
  
@@ -140,18 +145,11 @@ HBlankInterrupt:
 	rte 
 	
 VBlankInterrupt:
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
 	move.l #1, VblankFlag
-	rte   ; Return from Exception
+	rte   ; Return from interrupt
  
 Exception:
-	rte   ; Return from Exception
+	rte   ; Return from interrupt
 	
 
 Z80Data:
