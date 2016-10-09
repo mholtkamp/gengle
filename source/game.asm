@@ -34,6 +34,10 @@ LoadLevel:
 	; Reset ball count 
 	move.l #5, BallCount 
 	
+	; Reset pegs to default values 
+    jsr ClearPegs
+    
+	
 	rts 
 	
 ; ------ SUBROUTINE ------
@@ -220,4 +224,57 @@ UpdateResolve:
 	
 .return 
 	rts
+    
+; ------ SUBROUTINE ------
+; ClearPegs
+;
+; This will deactive all pegs and set their 
+; sprites offscreen. Will also set their 
+; sprite index appropriately.
+; ------------------------	
+ClearPegs:
+
+L_CUR_PEG   SET 0 
+L_COUNTER   SET 4 
+LVARS_SIZE  SET 8 
+
+    ; add local vars to stack 
+    sub.l #LVARS_SIZE, sp 
+    lea Pegs, a0        ; a0 = pointer to cur peg 
+    clr.l d0            ; d0 = counter 
+    move.l a0, L_CUR_PEG(sp)
+    move.l d0, L_COUNTER(sp)
+    
+.loop 
+    
+    ; Initialize the peg 
+    jsr Peg_Init
+    
+    ; Set the approriate sprite index 
+    move.l L_CUR_PEG(sp), a0        ; restore local vars to registers
+    move.l L_COUNTER(sp), d0 
+    move.l d0, d1 
+    addq.l #PEGS_SPRITE_INDEX, d1   ; d1 = sprite index 
+    move.b d1, M_PEG_SPRITE_INDEX(a0)
+    
+    ; Init the peg's sprite 
+    jsr Peg_InitSprite                      ; initialize the sprite 
+
+    move.l L_COUNTER(sp), d0 
+    addq.l #1, d0 
+    move.l d0, L_COUNTER(sp)
+    cmpi.l #MAX_PEGS, d0 
+    beq .return 
+    
+    ; move pointer to next peg 
+    move.l L_CUR_PEG(sp), a0 
+    add.l #PEG_DATA_SIZE, a0 
+    move.l a0, L_CUR_PEG(sp)
+    jmp .loop 
+    
+.return 
+
+    ; remove local vars from stack 
+    add.l #LVARS_SIZE, sp 
+    rts
 	

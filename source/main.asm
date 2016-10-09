@@ -221,6 +221,7 @@ BlankPattern:
 	INCLUDE "source/game.asm"
 	INCLUDE "source/tables.asm"
 	INCLUDE "source/ball.asm"
+    INCLUDE "source/peg.asm"
 	
 	; TILE includes 
 	EVEN
@@ -234,6 +235,11 @@ BlankPattern:
 	; MAP includes 
 	EVEN 
 	INCLUDE "maps/title.asm"
+	
+	; Level includes 
+	EVEN 
+	INCLUDE "levels/level0.asm"
+	INCLUDE "levels/levels.asm"
 	
 	; BSS addresses 
 	INCLUDE "source/bss.asm"
