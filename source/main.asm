@@ -120,6 +120,9 @@ EntryPoint:
 	move.l #32, d1
 	move.l #70, d2
 	jsr SetSpritePosition
+	move.l #2, d0 
+	move.l #0, d1 
+	jsr SetSpritePalette 
 	; END ---TEST---
 	
 Main_Loop:

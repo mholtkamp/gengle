@@ -464,3 +464,37 @@ SetSpriteSize:
 	move.w d4, ADDR_VDP_DATA
 	
 	rts 
+
+; ------ SUBROUTINE ------
+; SetSpritePalette
+;
+; Sets the sprite's palette
+; 
+; Input:
+;   d0.l = sprite index (0-79)
+;   d1.l = sprite palette (0-3)
+; ------------------------	
+SetSpritePalette:
+
+	move.l #VDP_COM_READ_SPRITE, d3 
+	lsl.l #3, d0 
+	addq.l #4, d0 
+	swap.w d0 
+	add.l d0, d3 			; d3 = read command 
+	
+	andi.l #$3, d1 			; sanitize new palette, make sure it is between 0-3 
+	ror.w #3, d1 			; rotate the bits to put them in the proper place for palette word 
+	
+	move.l d3, ADDR_VDP_CONTROL 
+	
+	move.w ADDR_VDP_DATA, d4 
+	andi.w #$9fff, d4 			; mask off old palette 
+	add.w d1, d4 				; add the new palette in bits 14/13 
+	
+	move.l #VDP_COM_WRITE_SPRITE, d3  
+	add.l d0, d3 
+	
+	move.l d3, ADDR_VDP_CONTROL 
+	move.w d4, ADDR_VDP_DATA
+	
+	rts 
