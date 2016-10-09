@@ -126,6 +126,12 @@ Main_Loop:
 	jmp Main_Loop
 	
 .check_resolve
+	cmpi.l #STATE_RESOLVE, d0 
+	bne .check_lose 
+	jsr UpdateResolve 
+	jmp Main_Loop
+	
+.check_lose 
 	
 	
 	jmp Main_Loop        ; go to next iteration of game loop

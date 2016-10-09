@@ -58,6 +58,7 @@ UpdateAim:
 	move.l d1, AimAngle 
 	
 	jsr _PositionBall
+	jsr _CheckLaunch
 
 .return 
 	rts 
@@ -109,7 +110,62 @@ _PositionBall:
 .return 
 
 	rts 
+
+; ------ SUBROUTINE ------
+; _CheckLaunch
+;
+; Private subroutine that checks if the user 
+; has pressed the A button to launch the ball.
+; If A is pressed, the ball's x/y velocity is 
+; is set and the game state is changed to 
+; STATE_RESOLVE. 
+; This subroutine should only be called from 
+; UpdateAim
+; ------------------------	
+_CheckLaunch:
+
+	move.w ButtonsDown, d0 
+	btst #BUTTON_A, d0 
+	bne .return 
 	
+	; Set the ball's x/y velocity
+	; First find the x-component of velocity 
+	move.l #(LAUNCH_SPEED), d0 		; d0 = LAUNCH_SPEED in fixed 24.8
+	move.l AimAngle, d1 			; load global var AimAngle into d1 
+	asr.l #8, d1 					; convert from fixed to int 
+	lea CosTable, a0 
+	asl.l #1, d1 					; mult by 2 to get word-offset into table 
+	add.l d1, a0 					; find the cos value. The angle should already be in range 5-175.
+	
+	move.w (a0), d1 				; d1 = 8.8 value 
+	muls d0, d1						; mult to get the xvel component of LAUNCH_SPEED
+	
+	asr.l #8, d1 					; result is in 16.16 format. shift right to get into 24.8
+	move.l d1, d2					; d2 = xvel component 
+	
+	; Next find the y component of velocity 
+	move.l AimAngle, d1 
+	asr.l #8, d1 
+	lea SinTable, a0 
+	asl.l #1, d1 
+	add.l d1, a0 
+	
+	move.w (a0), d1 
+	muls d0, d1 
+	
+	asr.l #8, d1 					; convert from 16.16 to 24.8 
+	move.l d1, d3					; d3 = yvel component
+	
+	; Update the ball struct's new xvel and yvel 
+	lea Ball, a0 
+	move.l d2, M_BALL_XVEL(a0)
+	move.l d3, M_BALL_YVEL(a0)
+	
+	; Change the game state 
+	move.l #STATE_RESOLVE, GameState
+	
+.return 
+	rts 
 
 ; ------ SUBROUTINE ------
 ; UpdateResolve
@@ -125,5 +181,7 @@ _PositionBall:
 ; ------------------------	
 UpdateResolve:
 
+	lea Ball, a0 
+	jsr Ball_Update 
 	rts
 	

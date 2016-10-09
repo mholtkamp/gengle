@@ -47,6 +47,26 @@ Ball_Init:
 ; ------------------------	
 Ball_Update:
 
+	; Apply gravity 
+	move.l M_BALL_YVEL(a0), d0 
+	move.l #GRAVITY, d1 
+	add.l d1, d0 
+	move.l d0, M_BALL_YVEL(a0)
+	
+	; Update the position of ball
+	move.l M_BALL_XVEL(a0), d0 
+	move.l M_BALL_X(a0), d1 
+	add.l d0, d1 
+	move.l d1, M_BALL_X(a0)
+	
+	move.l M_BALL_YVEL(a0), d0 
+	move.l M_BALL_Y(a0), d1 
+	add.l d0, d1 
+	move.l d1, M_BALL_Y(a0)
+	
+	; Update sprite 
+	jsr Ball_UpdateSprite
+	
 	rts 
 
 ; ------ SUBROUTINE ------
