@@ -334,7 +334,7 @@ ResetAllSprites:
 	move.w #SPRITE_DISABLE_Y, ADDR_VDP_DATA 	; RESET vertical position of sprite 
 	move.w d0, d1 			; get the sprite index 
 	addq.w #1, d1 			; increment by 1 to get the index of next sprite in link list 
-	ori.w #$0500, d1 		; or with vert size = 1, hori size = 1 for default size (16x16 pixels)
+	ori.w #$0000, d1 		; or with vert size = 1, hori size = 1 for default size (8x8 pixels)
 	move.w d1, ADDR_VDP_DATA					; RESET hori/vert size and link number 
 	move.w #$2037, ADDR_VDP_DATA				; RESET (prio=0, pal=1, flips=0, pattern = RED_PEG_TILE_INDEX)
 	move.w #SPRITE_DISABLE_X, ADDR_VDP_DATA		; RESET horizontal position of sprite 
@@ -388,5 +388,79 @@ SetSpritePosition:
 	move.l d3, ADDR_VDP_CONTROL 
 	
 	move.w d1, ADDR_VDP_DATA				; write the new x pos 
+	
+	rts 
+	
+; ------ SUBROUTINE ------
+; SetSpritePattern
+;
+; Assigns the given pattern index to the sprite at
+; the provided index 
+; 
+; Input:
+;   d0.l = sprite index (0-79)
+;   d1.l = sprite pattern (0-2047)
+; ------------------------	
+SetSpritePattern:
+	move.l #VDP_COM_READ_SPRITE, d3 
+	lsl.l #3, d0 
+	addq.l #4, d0 			; add 4 to get the word containing pattern 
+	swap.w d0 
+	add.l d0, d3 
+	
+	move.l d3, ADDR_VDP_CONTROL
+	
+	move.w ADDR_VDP_DATA, d2 		; read word value for pattern word 
+	andi.w #$f800, d2 				; mask off the old pattern value 
+	andi.w #$07ff, d1 				; make sure that the pattern is in range 0-2047 
+	add.w d1, d2 					; d2 = word with new pattern in bits 0-10
+	
+	move.l #VDP_COM_WRITE_SPRITE, d3 ; place the sprite write command in d3 because we are writing the new word 
+	add.l d0, d3 					; d0 still contains the offset into sprite table of pattern word 
+	
+	move.l d3, ADDR_VDP_CONTROL 	; preparing to write new pattern word for this sprite 
+	
+	move.w d2, ADDR_VDP_DATA 		; do the write 
+	
+	rts 
+
+; ------ SUBROUTINE ------
+; SetSpriteSize
+;
+; Sets the sprites dimensions.
+; 
+; Input:
+;   d0.l = sprite index (0-79)
+;   d1.l = sprite width (0-3)
+;   d2.l = sprite height (0-3)
+; ------------------------	
+SetSpriteSize:
+
+	move.l #VDP_COM_READ_SPRITE, d3 
+	lsl.l #3, d0 
+	addq.l #2, d0				; add 2 to get the word containing dimensions
+	swap.w d0 
+	add.l d0, d3 				; d3 command to read where we want 
+	
+	andi.l #$0003, d1 			; ensure that width is 0-3 
+	andi.l #$0003, d2 			; ensure that height is 0-3 
+	lsl.w #8, d2 				; shift over the height to correct position
+	lsl.w #8, d1 				
+	lsl.w #2, d1 				; move the witdh bits over by 10 to get them into proper position 
+	
+	add.w d2, d1 				; d1 = the new bits to write into dimension word 
+	
+	move.l d3, ADDR_VDP_CONTROL
+	
+	move.w ADDR_VDP_DATA, d4 	; d4 = current dimension word 
+	andi.w #$f0ff, d4			; mask away the old dimensions 
+	add.w d1, d4 				; d4 = new dim word 
+	
+	move.l #VDP_COM_WRITE_SPRITE, d3 
+	add.l d0, d3 				; prepare to write dim word 
+	
+	move.l d3, ADDR_VDP_CONTROL
+	
+	move.w d4, ADDR_VDP_DATA
 	
 	rts 

@@ -102,8 +102,23 @@ EntryPoint:
 	
 	; BEGIN ---TEST---
 	move.l #0, d0 
-	move.l #30, d1
-	move.l #120, d2
+	move.l #0, d1
+	move.l #0, d2
+	jsr SetSpritePosition
+	move.l #1, d0 
+	move.l #16, d1
+	move.l #16, d2
+	jsr SetSpritePosition
+	move.l #1, d0 
+	move.l #SAVER_TILE_INDEX, d1
+	jsr SetSpritePattern 
+	move.l #1, d0 
+	move.l #SIZE_32, d1
+	move.l #SIZE_16, d2 
+	jsr SetSpriteSize 
+	move.l #2, d0 
+	move.l #32, d1
+	move.l #70, d2
 	jsr SetSpritePosition
 	; END ---TEST---
 	
@@ -112,6 +127,8 @@ Main_Loop:
 	jsr WaitVblank
 	jsr UpdateButtons
 	
+	; The subroutine pointer method:
+	; TODO: Reincorporate this code. remove if checks below.
 	;move.l GameState, d0 
 	;lsl.l #2, d0 
 	;lea UpdatePointers, a0 
