@@ -100,31 +100,6 @@ EntryPoint:
 	jsr LoadStart
 	move.l #STATE_START, GameState
 	
-	; BEGIN ---TEST---
-	move.l #0, d0 
-	move.l #0, d1
-	move.l #0, d2
-	jsr SetSpritePosition
-	move.l #1, d0 
-	move.l #16, d1
-	move.l #16, d2
-	jsr SetSpritePosition
-	move.l #1, d0 
-	move.l #SAVER_TILE_INDEX, d1
-	jsr SetSpritePattern 
-	move.l #1, d0 
-	move.l #SIZE_32, d1
-	move.l #SIZE_16, d2 
-	jsr SetSpriteSize 
-	move.l #2, d0 
-	move.l #32, d1
-	move.l #70, d2
-	jsr SetSpritePosition
-	move.l #2, d0 
-	move.l #0, d1 
-	jsr SetSpritePalette 
-	; END ---TEST---
-	
 Main_Loop:
 
 	jsr WaitVblank
@@ -240,6 +215,8 @@ BlankPattern:
 	INCLUDE "source/start.asm"
 	INCLUDE "source/init.asm"
 	INCLUDE "source/game.asm"
+	INCLUDE "source/tables.asm"
+	INCLUDE "source/ball.asm"
 	
 	; TILE includes 
 	EVEN

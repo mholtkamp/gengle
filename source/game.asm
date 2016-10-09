@@ -1,3 +1,11 @@
+; ------ SUBROUTINE ------
+; LoadGame
+;
+; Changes the scroll A map to the game map. 
+; Initializes important game variables.
+; Should be called before starting a new game
+; from level 0.
+; ------------------------	
 LoadGame:
 	
 	; Clear the background 
@@ -13,6 +21,15 @@ LoadGame:
 	
 	rts
 	
+; ------ SUBROUTINE ------
+; UpdateAim
+;
+; Updates the aim angle based on user input.
+; Sets the ball based on the aim angle. 
+; Will launch ball and enter the resolve state 
+; if the user pressed A. 
+; Should only be called in STATE_AIM
+; ------------------------	
 UpdateAim:
 
 	move.w ButtonsDown, d0 
@@ -40,10 +57,72 @@ UpdateAim:
 .save_aim_angle
 	move.l d1, AimAngle 
 	
-	
+	jsr _PositionBall
+
 .return 
 	rts 
 	
+; ------ SUBROUTINE ------
+; _PositionBall
+;
+; Private subroutine that positions the ball 
+; based on the current AimAngle.
+; ------------------------	
+_PositionBall:
+	
+	; Get delta x from center 
+	move.l #(AIM_RADIUS>>8), d0 		
+	move.l AimAngle, d1 			; load global var AimAngle into d1 
+	lsr.l #8, d1 					; convert from fixed to int 
+	
+	lea CosTable, a0 
+	lsl.l #1, d1 					; multiply angle by 2 to get word-offset into table 
+	add.l d1, a0 					; a0 pointing at cos((int)AimAngle)
+	move.w (a0), d1 				; d1 = 8.8 cos value 
+	
+	muls d0, d1 					; d1 = AIM_RADIUS * cos(AimAngle) = DeltaX * 256 
+	
+	move.l #AIM_CENTER_X, d2 
+	add.l d2, d1 					; d1 = ball x pos. (x = AIM_CENTER_X + DeltaX)
+	
+
+	; Get delta y from center 
+	move.l AimAngle, d2 			; load global var AimAngle into d2 
+	lsr.l #8, d2 					; convert from fixed to int 
+	
+	lea SinTable, a0 
+	lsl.l #1, d2 					; multiply angle by 2 to get word-offset into table 
+	add.l d2, a0 					; a0 pointing at sin((int)AimAngle)
+	move.w (a0), d2 				; d2 = 8.8 sin value 
+	
+	muls d0, d2 					; d2 = AIM_RADIUS * sin(AimAngle) = DeltaX * 256 
+	
+	move.l #AIM_CENTER_Y, d3 
+	add.l d3, d2 					; d3 = ball y pos. (y = AIM_CENTER_Y + DeltaX)
+	
+	; Update the ball position
+	lea Ball, a0 
+	move.l d1, M_BALL_X(a0)
+	move.l d2, M_BALL_Y(a0)
+	jsr Ball_UpdateSprite
+
+.return 
+
+	rts 
+	
+
+; ------ SUBROUTINE ------
+; UpdateResolve
+;
+; Will update the game physics, resolve collisions
+; that occur between the ball and pegs. Will change 
+; state to STATE_AIM if the ball falls below 
+; FALLOUT_Y or if the ball collides with the saver. 
+; Will change state to STATE_LOSE if the player
+; has no more lives. Will change state to 
+; STATE_WIN if all orange pegs are cleared on level
+; NUM_LEVELS-1.
+; ------------------------	
 UpdateResolve:
 
 	rts
