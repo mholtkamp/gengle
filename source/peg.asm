@@ -154,6 +154,8 @@ Peg_UpdateSprite:
     ; Update the position of sprite, and that is all.
     move.l M_PEG_X(a0), d1 
     move.l M_PEG_Y(a0), d2 
+    asr.l #8, d1 
+    asr.l #8, d2                ; shift the positions to convert them to integer from fixed
     clr.l d0 
     move.b M_PEG_SPRITE_INDEX(a0), d0 
     jsr SetSpritePosition

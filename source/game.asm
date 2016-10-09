@@ -37,7 +37,66 @@ LoadLevel:
 	; Reset pegs to default values 
     jsr ClearPegs
     
-	
+    ; Get the level data needed for loading
+	move.l Level, d0 
+    cmpi.l #(NUM_LEVELS), d0
+    blo .load_pegs 
+    
+    ; confine level number to range [0, NUM_LEVELS)
+    move.l #(NUM_LEVELS-1), d0 
+    
+.load_pegs
+    ; d0 contains level number. 
+    ; multiply it by 4 to get the long offset into level data table 
+    lsl.l #2, d0 
+    lea LevelData, a0 
+    add.l d0, a0            ; a0 now pointing at current level data address
+    move.l (a0), a1         ; a1 is not pointing to current level data 
+    move.l a1, a0           ; but put this back in a0 
+    
+    ; Get the level properties 
+    move.l LEVEL_PEG_COUNT_OFFSET(a0), LevelPegCount
+    move.l LEVEL_RED_PEG_COUNT_OFFSET(a0), LevelRedPegCount 
+    move.l LEVEL_BALL_COUNT_OFFSET(a0), LevelBallCount 
+    
+    adda.l #LEVEL_PEGS_OFFSET, a0       ; a0 = pointer to peg pos array in leveldata  
+    lea Pegs, a1                        ; a1 = peg array 
+    clr.l d0                            ; d0 = counter 
+    
+    ; Loop through the peg data and position pegs accordingly
+.peg_loop 
+    ; set x position of peg 
+    clr.l d1 
+    move.w (a0)+, d1            ; d1 = x pos 
+    lsl.l #8, d1                ; convert from integer to fixed 
+    move.l d1, M_PEG_X(a1)
+    
+    ; set y position of peg 
+    clr.l d1 
+    move.w (a0)+, d1 
+    lsl.l #8, d1 
+    move.l d1, M_PEG_Y(a1)
+    
+    ; Update peg sprite 
+    move.l a0, -(sp)
+    move.l a1, -(sp)
+    move.l d0, -(sp)            ; save reg state
+    
+    move.l a1, a0 
+    jsr Peg_UpdateSprite
+    
+    move.l (sp)+, d0 
+    move.l (sp)+, a1 
+    move.l (sp)+, a0            ; restore reg state
+    
+    ; point to next peg struct in preparation for next iteration 
+    adda.l #PEG_DATA_SIZE, a1 
+    
+    ; check if loop should be repeated 
+    addq.l #1, d0 
+    cmp.l LevelPegCount, d0 
+    bne .peg_loop
+    
 	rts 
 	
 ; ------ SUBROUTINE ------
