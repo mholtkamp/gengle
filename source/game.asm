@@ -14,6 +14,11 @@ LoadGame:
 	jsr ClearMap
 	
 	; @@ TODO: Load the scrolling background here
+    
+    ; Initialize ball sprite
+    move.l #BALL_PATTERN, d1 
+    move.l #BALL_SPRITE_INDEX, d0 
+    jsr SetSpritePattern 
 	
 	jsr LoadLevel
 	
@@ -30,9 +35,6 @@ LoadLevel:
 	; Reset aim angle 
 	move.l #AIM_START_ANGLE, AimAngle 
 	move.l #0, Level
-	
-	; Reset ball count 
-	move.l #5, BallCount 
 	
 	; Reset pegs to default values 
     jsr ClearPegs
@@ -58,6 +60,7 @@ LoadLevel:
     move.l LEVEL_PEG_COUNT_OFFSET(a0), LevelPegCount
     move.l LEVEL_RED_PEG_COUNT_OFFSET(a0), LevelRedPegCount 
     move.l LEVEL_BALL_COUNT_OFFSET(a0), LevelBallCount 
+    move.l LevelBallCount, BallCount        ; reset ball count 
     
     adda.l #LEVEL_PEGS_OFFSET, a0       ; a0 = pointer to peg pos array in leveldata  
     lea Pegs, a1                        ; a1 = peg array 

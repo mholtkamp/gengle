@@ -13,6 +13,8 @@ LoadStart:
 	lea TitleMap, a0 
 	move.l #TITLE_ADDR, a1
 	jsr LoadMap
+    
+    jsr ResetAllSprites
 	
 	rts 
 	
