@@ -222,6 +222,7 @@ BlankPattern:
 	INCLUDE "source/tables.asm"
 	INCLUDE "source/ball.asm"
     INCLUDE "source/peg.asm"
+    INCLUDE "source/rect.asm"
 	
 	; TILE includes 
 	EVEN

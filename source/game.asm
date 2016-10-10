@@ -15,7 +15,10 @@ LoadGame:
 	
 	; @@ TODO: Load the scrolling background here
     
-    ; Initialize ball sprite
+    ; Initialize ball 
+    lea Ball, a0 
+    jsr Ball_Init 
+    
     move.l #BALL_PATTERN, d1 
     move.l #BALL_SPRITE_INDEX, d0 
     jsr SetSpritePattern 
@@ -79,6 +82,9 @@ LoadLevel:
     move.w (a0)+, d1 
     lsl.l #8, d1 
     move.l d1, M_PEG_Y(a1)
+    
+    ; mark the peg as active 
+    move.b #1, M_PEG_ACTIVE(a1)    ; 1 = active 
     
     ; Update peg sprite 
     move.l a0, -(sp)
