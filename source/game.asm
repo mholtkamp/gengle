@@ -19,6 +19,12 @@ LoadGame:
     lea Ball, a0 
     jsr Ball_Init 
     
+    ; Initialize saver 
+    lea Saver, a0 
+    jsr Saver_Init
+    lea Saver, a0 
+    jsr Saver_InitSprite 
+    
     move.l #BALL_PATTERN, d1 
     move.l #BALL_SPRITE_INDEX, d0 
     jsr SetSpritePattern 
@@ -146,6 +152,9 @@ UpdateAim:
 	
 	jsr _PositionBall
 	jsr _CheckLaunch
+    
+    lea Saver, a0  
+    jsr Saver_Update 
 
 .return 
 	rts 
@@ -270,6 +279,9 @@ UpdateResolve:
 
 	lea Ball, a0 
 	jsr Ball_Update 
+    
+    lea Saver, a0  
+    jsr Saver_Update 
 	
 	; Check if the ball has passed the fallout threshold 
 	lea Ball, a0 
