@@ -6,7 +6,7 @@
 ; ******************************************************************
 ; Sega Megadrive ROM header
 ; ******************************************************************
-	dc.l   0x00FFE000      ; Initial stack pointer value
+	dc.l   0x00FFFFFC      ; Initial stack pointer value
 	dc.l   EntryPoint      ; Start of program
 	dc.l   Exception       ; Bus error
 	dc.l   Exception       ; Address error
@@ -75,11 +75,12 @@
 	dc.b "(C)SEGA 1992.SEP"                                 ; Copyrght holder and release date
 	dc.b "GENGLE                                          " ; Domestic name
 	dc.b "GENGLE                                          " ; International name
-	dc.b "GM XXXXXXXX-XX"                                   ; Version number
+	dc.b "GM 12345678-01"                                   ; Version number
 	dc.w 0x0000                                             ; Checksum
 	dc.b "J               "                                 ; I/O support
 	dc.l 0x00000000                                         ; Start address of ROM
-	dc.l __end                                              ; End address of ROM
+	;dc.l __end                                              ; End address of ROM
+    dc.l 8191
 	dc.l 0x00FF0000                                         ; Start address of RAM
 	dc.l 0x00FFFFFF                                         ; End address of RAM
 	dc.l 0x00000000                                         ; SRAM enabled
@@ -93,8 +94,12 @@
 
 
 EntryPoint:
-	; Set the status register to turn on supervisor mode 
-	move #0x2000, sr
+    
+    ; Set the status register to turn on supervisor mode 
+	move.w #$2000, sr
+    
+    ; Set up the stack pointer 
+    move.l #$00FFFFFC, sp
 	
 	jsr Init
 	jsr LoadStart
@@ -104,14 +109,6 @@ Main_Loop:
 
 	jsr WaitVblank
 	jsr UpdateButtons
-	
-	; The subroutine pointer method:
-	; TODO: Reincorporate this code. remove if checks below.
-	;move.l GameState, d0 
-	;lsl.l #2, d0 
-	;lea UpdatePointers, a0 
-	;add.l d0, a0 
-	;jsr (a0)
 	
 	move.l GameState, d0 
 	cmpi.l #STATE_START, d0 
@@ -198,8 +195,7 @@ VDP_Init_Reg_Vals:
 ;UpdatePointers:
 ;   dc.l UpdateStart
 ;   dc.l UpdateAim
-   
-   
+
 	EVEN
 BlankPattern:
 
