@@ -79,8 +79,7 @@
 	dc.w 0x0000                                             ; Checksum
 	dc.b "J               "                                 ; I/O support
 	dc.l 0x00000000                                         ; Start address of ROM
-	;dc.l __end                                              ; End address of ROM
-    dc.l 8191
+	dc.l __end                                              ; End address of ROM
 	dc.l 0x00FF0000                                         ; Start address of RAM
 	dc.l 0x00FFFFFF                                         ; End address of RAM
 	dc.l 0x00000000                                         ; SRAM enabled

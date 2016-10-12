@@ -150,9 +150,99 @@ REGS REG a0/a1/d0
     
     tst.l d1 
     beq .continue 
-
-    ; @@ TODO: Add complex collision 
-    move.l #(-2*TO_FIXED), M_BALL_YVEL(a0)       ; boost the ball upwards
+    
+    ; So after a bunch of testing and experimenting, I've decided to 
+    ; use a very basic collision model where the ball bounces in the 
+    ; exact same direct as the vector between the ball's position 
+    ; and the peg's position. 
+    
+    ; Calculate the displacement vector (dispVec)
+    ; The dispVec is the vector difference of the 
+    ; positions of the ball and peg. The dispVec is 
+    ; important because it shows what direction the ball 
+    ; is from the peg.
+    move.l M_BALL_X(a0), d1 
+    move.l M_BALL_Y(a0), d2
+    move.l M_PEG_X(a1), d3 
+    move.l M_PEG_Y(a1), d4 
+    
+    ; subtract peg pos from ball pos 
+    sub.l d3, d1
+    sub.l d4, d2                ; <d1, d2> is the displacement vector now
+    
+    move.l M_BALL_XVEL(a0), d3 
+    move.l M_BALL_YVEL(a0), d4  ; <d3, d4> is the velocity vector 
+    
+    ; Get the magnitude of the velocity 
+    move.l d3, d5 
+    muls d5, d3     ; square the xvel
+    asr.l #8, d3    ; return to 24.8 format 
+    move.l d4, d5 
+    muls d5, d4     ; square the yvel 
+    asr.l #8, d4    ; return to 24.8 format 
+    add.l d4, d3    ; add the squares of the x/y components 
+    
+    ; clamp the magnitude so it stays within sqrt table 
+    asr.l #8, d3             ; convert to int 
+    cmpi.l #MAX_SQRT_INPUT,d3 
+    blo .no_vel_clamp
+    move.l #MAX_SQRT_INPUT, d3 
+.no_vel_clamp
+    asl.l #1, d3 
+    lea SqrtTable, a3 
+    add.l d3, a3 
+    clr.l d3 
+    move.w (a3), d3   ; d3 = magnitude of velocity 
+    
+    ; Dampen the velocity a tiny bit for some realistic collision 
+    move.l #DAMPENING_COEFFICIENT, d4 
+    muls d4, d3       
+    asr.l #8, d3        ; d3 = the new speed of the ball
+    
+    ; Normalize the displacement vector for performing projection 
+    ; first step is to get magnitude squared 
+    move.l d1, d5 
+    muls d1, d5
+    asr.l #8, d5 
+    move.l d2, d6
+    muls d2, d6 
+    asr.l #8, d6
+    add.l d6, d5        ; d5 = magnitude squared 
+    
+    ; Next step to normalizing is to find the magnitude (sqrt of magnitude squared)
+    asr.l #8, d5        ; convert mag squared from 24.8 to int 
+    cmpi.l #MAX_SQRT_INPUT, d5 
+    blo .skip_mag_clamp
+    move.l #MAX_SQRT_INPUT, d5  ; clamp if outside of table index range 
+.skip_mag_clamp
+    lsl.l #1, d5                ; get the index into the sqrt table in bytes 
+    lea SqrtTable, a3 
+    add.l d5, a3 
+    clr.l d5                    ; clear the long because we are about to store a positive word in this reg 
+    move.w (a3), d5             ; d5 = magnitude 
+    
+    ; Last step of normalizing is to divide dispVec by the magnitude 
+    asl.l #8, d1        ; the divors can be in 16.16 format 
+    asl.l #8, d2 
+    divs d5, d1 
+    divs d5, d2 
+    ext.l d1            ; now d1 should be in 24.8
+    ext.l d2            ; and d2 should be in 24.8
+    
+    ; <d1, d2> = the normalized displacement vector 
+    ; Now (for basic collision) we can just multiply the dampened velocity 
+    ; with the normalized displacement vector and then set that as the new 
+    ; xvel/yvel of the ball. 
+    muls d3, d1
+    asr.l #8, d1 
+    muls d3, d2
+    asr.l #8, d2 
+    
+    move.l d1, M_BALL_XVEL(a0)
+    move.l d2, M_BALL_YVEL(a0)
+    
+    ; Now mark the peg as active and init the sprite 
+    ; so that it goes offscreen 
     move.b #0, M_PEG_ACTIVE(a1)
     movem.l REGS, -(sp) 
     move.l a1, a0 
