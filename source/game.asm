@@ -15,6 +15,23 @@ LoadGame:
 	
 	; @@ TODO: Load the scrolling background here
     
+    ; Load in static overlay images onto Scroll B plane 
+	move.l #BALLS_STRING_WIDTH, d0 
+	move.l #1, d1               ; text is only on one line 
+	move.l #0, d2 
+	move.l #0, d3 
+	lea BallsStringMap, a0 
+	move.l #BALLS_STRING_ADDR, a1
+	jsr LoadMap
+    
+	move.l #SCORE_STRING_WIDTH, d0 
+	move.l #1, d1               ; text is only on one line 
+	move.l #0, d2               ; pal 0 
+	move.l #0, d3               ; tile offset = 0.
+	lea ScoreStringMap, a0 
+	move.l #SCORE_STRING_ADDR, a1
+	jsr LoadMap
+    
     ; Initialize ball 
     lea Ball, a0 
     jsr Ball_Init 
@@ -158,6 +175,9 @@ LoadLevel:
     ; decrement counter 
     subq.l #1, d1 
     bne .red_peg_loop
+    
+    ; draw the new ball count 
+    jsr DrawBallCount
     
 	rts 
 	
@@ -352,7 +372,8 @@ UpdateResolve:
 	move.l BallCount, d0 
 	subq.l #1, d0 
 	move.l d0, BallCount
-	cmpi.l #0, d0 
+    jsr DrawBallCount
+	cmpi.l #0, BallCount 
 	bne .set_state_aim
 	move.l #STATE_LOSE, GameState
 	jsr LoadStart
@@ -416,3 +437,37 @@ LVARS_SIZE  SET 8
     add.l #LVARS_SIZE, sp 
     rts
     
+; ------ SUBROUTINE ------
+; DrawScore
+;
+; Uses the current score in the Score 
+; global bss variable to draw digits 
+; on Plane A in decimal.
+; ------------------------	
+DrawScore:
+
+
+    rts 
+    
+; ------ SUBROUTINE ------
+; DrawBallCount
+;
+; Draws the ball count number on the 
+; screen (MAX BALLS = 9) by placing the 
+; proper glyphs into plane a's name table.
+; ------------------------	
+DrawBallCount:
+    
+    ; Assume that MAX_BALL_COUNT is being 
+    ; used elsewhere to properly clamp the maximum balls
+    ; the player can have 
+    
+    
+    move.l #1, d0 
+	move.l #1, d1               ; text is only on one line 
+	move.l #0, d2 
+	move.l #DIGIT_TILE_INDEX, d3                       ; BallCount holds a long of 0-9. just add the digit index and it is now a map entry 
+	lea (BallCount+2), a0 
+	move.l #(BALLS_STRING_ADDR+7*2), a1         ; the 7*2 is to push the digit 2 cells over from end of "BALLS" text 
+	jsr LoadMap
+    rts 

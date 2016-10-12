@@ -67,6 +67,11 @@ Init:
 	move.l #(SAVER_TILE_INDEX*32), a1 
 	jsr LoadTiles 
     
+    move.l #NUM_GLYPHS, d0 
+    lea GlyphTiles, a0 
+    move.l #(GLYPH_TILE_INDEX*32), a1 
+    jsr LoadTiles 
+    
 	; Load the game's palette
 	move.l #1, d0 
 	lea GamePalette, a0 

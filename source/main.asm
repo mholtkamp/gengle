@@ -211,10 +211,12 @@ BlankPattern:
 	INCLUDE "tiles/green_peg.asm"
 	INCLUDE "tiles/purple_peg.asm"
 	INCLUDE "tiles/saver.asm"
+    INCLUDE "tiles/glyphs.asm"
 	
 	; MAP includes 
 	EVEN 
 	INCLUDE "maps/title.asm"
+    INCLUDE "maps/strings.asm"
 	
 	; Level includes 
 	EVEN 
