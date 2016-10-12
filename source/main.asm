@@ -138,31 +138,14 @@ Main_Loop:
 	jmp Main_Loop        ; go to next iteration of game loop
  
 HBlankInterrupt:
-	rte 
+	rte   ; Return from interrupt
 	
 VBlankInterrupt:
 	move.l #1, VblankFlag
 	rte   ; Return from interrupt
  
 Exception:
-	rte   ; Return from interrupt
-	
-
-Z80Data:
-   dc.w 0xaf01, 0xd91f
-   dc.w 0x1127, 0x0021
-   dc.w 0x2600, 0xf977
-   dc.w 0xedb0, 0xdde1
-   dc.w 0xfde1, 0xed47
-   dc.w 0xed4f, 0xd1e1
-   dc.w 0xf108, 0xd9c1
-   dc.w 0xd1e1, 0xf1f9
-   dc.w 0xf3ed, 0x5636
-   dc.w 0xe9e9, 0x8104
-   dc.w 0x8f01
-
-PSGData:
-   dc.w 0x9fbf, 0xdfff
+	rte   
    
 ; Initial register values to be sent to VDP, thanks to Big Evil Corporation
 VDP_Init_Reg_Vals:

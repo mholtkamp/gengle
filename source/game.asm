@@ -112,6 +112,51 @@ LoadLevel:
     cmp.l LevelPegCount, d0 
     bne .peg_loop
     
+.set_red_pegs 
+    move.l LevelRedPegCount, d1 
+    move.l LevelPegCount, d2 
+    
+.red_peg_loop
+    ; First, get a random byte value 
+    movem.l d1-d2, -(sp)    ; save regs before calling Peg_InitSprite 
+    jsr Random          ; d0.b = random value 
+    movem.l (sp)+, d1-d2 
+    
+    divu d2, d0             ; random val / num pegs 
+    swap.w d0               ; get the remainder into d0.w 
+    andi.l #$0000ffff, d0   ; clear the quotient portion 
+    
+    ; get the peg at this index 
+    lsl.l #PEG_SIZE_SHIFT, d0
+    lea Pegs, a0 
+    add.l d0, a0 
+    
+    ; examine this random peg. if it's already red, then 
+    ; keep looping until a blue one is found 
+.find_blue_loop
+    move.b M_PEG_TYPE(a0), d3 
+    cmpi.b #PEG_TYPE_BLUE, d3 
+    beq .found_blue                 ; is this a blue peg? Then branch past this infinite loop 
+    
+    adda.l #PEG_DATA_SIZE, a0       ; increment to next peg 
+    cmpi.l #(Pegs+PEG_DATA_SIZE*MAX_PEGS), a0 ; but check if we just overran the peg array 
+    blo .find_blue_loop
+    
+    lea Pegs, a0                   ; we are past the last peg in the array. reset to first peg.
+    jmp .find_blue_loop
+    
+.found_blue 
+    ; A blue peg as found. Set it to red and then update the sprite 
+    move.b #PEG_TYPE_RED, M_PEG_TYPE(a0)
+    
+    movem.l d1-d2, -(sp)    ; save regs before calling Peg_InitSprite 
+    jsr Peg_InitSprite
+    movem.l (sp)+, d1-d2 
+    
+    ; decrement counter 
+    subq.l #1, d1 
+    bne .red_peg_loop
+    
 	rts 
 	
 ; ------ SUBROUTINE ------
@@ -357,4 +402,4 @@ LVARS_SIZE  SET 8
     ; remove local vars from stack 
     add.l #LVARS_SIZE, sp 
     rts
-	
+    

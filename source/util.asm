@@ -279,7 +279,6 @@ UpdateButtons:
 	nop
 	nop
 	move.b ADDR_CONTROLLER_DATA_PORT, d0 
-	;move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT
 	
 	; Move the contents of d0 into ButtonsDown 
 	move.w d0, ButtonsDown
@@ -498,3 +497,42 @@ SetSpritePalette:
 	move.w d4, ADDR_VDP_DATA
 	
 	rts 
+
+; ------ SUBROUTINE ------
+; SeedRandom
+;
+; Seeds the random number generator with 
+; a given word 
+; 
+; Input:
+;   d0.w = seed 
+; ------------------------	
+SeedRandom:
+    move.w d0, RandVal
+    rts 
+    
+; ------ SUBROUTINE ------
+; Random
+;
+; Returns a byte between
+; 
+; Output:
+;   d0.b = random value (0-255)
+; ------------------------	
+Random:
+    ; Multiply some magic number 
+    move.w RandVal, d0 
+    move.w #RAND_MULTIPLIER, d1 
+    mulu d1, d0 
+    
+    ; Add some magic number 
+    addi.w #RAND_ADDER, d0 
+    
+    ; Save this as the new random value
+    move.w d0, RandVal
+    
+    ; d0.b will contain a random number 
+    ; but mask away other bytes just for safety 
+    andi.l #$000000ff, d0 
+    
+    rts 

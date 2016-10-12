@@ -13,4 +13,5 @@ BallCount EQU (Level+4)
 LevelPegCount EQU (BallCount+4)
 LevelRedPegCount EQU (LevelPegCount+4)
 LevelBallCount EQU (LevelRedPegCount+4)
-
+RandVal EQU (LevelBallCount+4)
+FrameCounter EQU (RandVal+4)
