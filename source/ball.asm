@@ -241,22 +241,11 @@ REGS REG a0/a1/d0
     move.l d1, M_BALL_XVEL(a0)
     move.l d2, M_BALL_YVEL(a0)
     
-    ; Now mark the peg as active and init the sprite 
-    ; so that it goes offscreen 
-    move.b #0, M_PEG_ACTIVE(a1)
+    ; Consume the peg! omnom (deactivate it and add to score)
     movem.l REGS, -(sp) 
-    move.l a1, a0 
-    jsr Peg_InitSprite
+    move.l a1, a0         ; put peg into a0 for param 
+    jsr Peg_Consume 
     movem.l (sp)+, REGS 
-    
-    ; Check if peg was a red peg, if so, dec the 
-    ; global red peg count 
-    move.b M_PEG_TYPE(a1), d1
-    cmpi.b #PEG_TYPE_RED, d1 
-    bne .continue 
-    move.l RedPegCount, d1 
-    subq.l #1, d1 
-    move.l d1, RedPegCount
     
 .continue
     adda.l #PEG_DATA_SIZE, a1 

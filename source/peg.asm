@@ -161,3 +161,58 @@ Peg_UpdateSprite:
     jsr SetSpritePosition
 
     rts 
+
+; ------ SUBROUTINE ------
+; Peg_Consume
+;
+; Deactivates the peg and adds to the score
+; based on RedPegCount
+; 
+; Input:
+;   a0.l = pointer to peg struct 
+; ------------------------	
+Peg_Consume:
+
+    ; Now mark the peg as active and init the sprite 
+    ; so that it goes offscreen 
+    move.b #0, M_PEG_ACTIVE(a0)
+    
+    jsr Peg_InitSprite
+    
+    ; Check if peg was a red peg, if so, dec the 
+    ; global red peg count 
+    move.b M_PEG_TYPE(a0), d1
+    cmpi.b #PEG_TYPE_RED, d1 
+    bne .blue_peg  
+    move.l RedPegCount, d1 
+    subq.l #1, d1 
+    move.l d1, RedPegCount      ; reduce the number of red pegs 
+    
+    ; Add red peg score 
+    add.l #RED_PEG_SCORE, Score 
+    jmp .return 
+    
+.blue_peg 
+    move.l RedPegCount, d0
+    cmpi.l #LOW_RED, d0 
+    bgt .not_low 
+    
+    ; Only 1 or 2 red pegs left. Add 4 points 
+    addi.l #BLUE_PEG_LOW_SCORE, Score 
+    jmp .return 
+    
+.not_low 
+    cmpi.l #MID_RED, d0 
+    bgt .not_mid 
+    addi.l #BLUE_PEG_MID_SCORE, Score 
+    jmp .return 
+    
+.not_mid 
+    ; Okay, so there are still a lot of red pegs on the 
+    ; board. Only reward 1 point.
+    addi.l #BLUE_PEG_HIGH_SCORE, Score 
+    
+.return 
+    
+    jsr DrawScore 
+    rts 

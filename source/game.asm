@@ -48,6 +48,10 @@ LoadGame:
 	
     move.l #0, Level
 	jsr LoadLevel
+    
+    ; Reset score 
+    move.l #0, Score 
+    jsr DrawScore
 	
 	rts
 	
@@ -445,7 +449,49 @@ LVARS_SIZE  SET 8
 ; on Plane A in decimal.
 ; ------------------------	
 DrawScore:
+L_DIGIT3 SET 0
+L_DIGIT2 SET 2
+L_DIGIT1 SET 4
+LVARS_SIZE SET 6 
 
+    ; allocate local vars
+    sub.l #LVARS_SIZE, sp 
+    
+    ; Get first digit of score 
+    move.l Score, d0 
+    divu #10, d0 
+    move.l d0, d1 
+    swap.w d1
+    move.w d1, L_DIGIT1(sp)
+    andi.l #$0000ffff, d0 
+
+    ; second digit 
+    divu #10, d0 
+    move.l d0, d1 
+    swap.w d1
+    move.w d1, L_DIGIT2(sp)    
+    andi.l #$0000ffff, d0 
+    
+    ; third digit 
+    divu #10, d0 
+    move.l d0, d1 
+    swap.w d1
+    move.w d1, L_DIGIT3(sp)
+    andi.l #$0000ffff, d0 
+    
+    ; Now with all three digits on the stack we can make 
+    ; a call to LoadMap and we can use width 3 to render 
+    ; all three characters at once! 
+    move.l #3, d0       ; width = 3 
+    move.l #1, d1       ; height = 3 
+    move.l #0, d2       ; palette 0 
+    move.l #DIGIT_TILE_INDEX, d3 
+    movea.l sp, a0 
+    move.l #(SCORE_STRING_ADDR+7*2), a1 
+    jsr LoadMap
+    
+    ; destroy local vars
+    add.l #LVARS_SIZE, sp 
 
     rts 
     
