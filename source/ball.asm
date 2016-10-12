@@ -249,6 +249,15 @@ REGS REG a0/a1/d0
     jsr Peg_InitSprite
     movem.l (sp)+, REGS 
     
+    ; Check if peg was a red peg, if so, dec the 
+    ; global red peg count 
+    move.b M_PEG_TYPE(a1), d1
+    cmpi.b #PEG_TYPE_RED, d1 
+    bne .continue 
+    move.l RedPegCount, d1 
+    subq.l #1, d1 
+    move.l d1, RedPegCount
+    
 .continue
     adda.l #PEG_DATA_SIZE, a1 
     addq.l #1, d0 

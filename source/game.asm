@@ -29,6 +29,7 @@ LoadGame:
     move.l #BALL_SPRITE_INDEX, d0 
     jsr SetSpritePattern 
 	
+    move.l #0, Level
 	jsr LoadLevel
 	
 	rts
@@ -43,7 +44,6 @@ LoadLevel:
 
 	; Reset aim angle 
 	move.l #AIM_START_ANGLE, AimAngle 
-	move.l #0, Level
 	
 	; Reset pegs to default values 
     jsr ClearPegs
@@ -69,6 +69,8 @@ LoadLevel:
     move.l LEVEL_PEG_COUNT_OFFSET(a0), LevelPegCount
     move.l LEVEL_RED_PEG_COUNT_OFFSET(a0), LevelRedPegCount 
     move.l LEVEL_BALL_COUNT_OFFSET(a0), LevelBallCount 
+    move.l LevelPegCount, PegCount
+    move.l LevelRedPegCount, RedPegCount    ; set the number of red pegs to get 
     move.l LevelBallCount, BallCount        ; reset ball count 
     
     adda.l #LEVEL_PEGS_OFFSET, a0       ; a0 = pointer to peg pos array in leveldata  
@@ -327,7 +329,18 @@ UpdateResolve:
     
     lea Saver, a0  
     jsr Saver_Update 
+    
+    ; Check if the stage has been cleared. (no red pegs remaining)
+    move.l RedPegCount, d0 
+    cmpi.l #0, d0 
+    bne .check_fallout
+    ; increment level and call load level again
+    addq.l #1, Level 
+    jsr LoadLevel 
+    move.l #STATE_AIM, GameState
+    jmp .return 
 	
+.check_fallout
 	; Check if the ball has passed the fallout threshold 
 	lea Ball, a0 
 	move.l M_BALL_Y(a0), d0 
