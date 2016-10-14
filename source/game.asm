@@ -13,7 +13,8 @@ LoadGame:
 	move.l #ADDR_SCROLL_A_NAME_TABLE, a0
 	jsr ClearMap
 	
-	; @@ TODO: Load the scrolling background here
+    ; Init the radial pointers 
+	jsr InitPointerSprites
     
     ; Load in static overlay images onto Scroll B plane 
 	move.l #BALLS_STRING_WIDTH, d0 
@@ -222,6 +223,7 @@ UpdateAim:
 	move.l d1, AimAngle 
 	
 	jsr _PositionBall
+    jsr _PositionPointers
 	jsr _CheckLaunch
     
     lea Saver, a0  
@@ -333,6 +335,9 @@ _CheckLaunch:
 	
 	; Change the game state 
 	move.l #STATE_RESOLVE, GameState
+    
+    ; Hide the radial pointers 
+    jsr HidePointers
 	
 .return 
 	rts 
@@ -587,4 +592,131 @@ UpdateLoseWin:
     jsr LoadStart 
     
 .return 
+    rts 
+    
+; ------ SUBROUTINE ------
+; _PositionPointers 
+; 
+; Positions the little white dots for aiming.
+; THIS IS VERY DIRTY BECAUSE I AM RUNNING OUT OF TIME
+; TODO: MAKE A LOOP :O!
+; ------------------------	    
+_PositionPointers:
+
+	; Get delta x from center 
+	move.l #((AIM_RADIUS/3)>>8), d0 		
+	move.l AimAngle, d1 			; load global var AimAngle into d1 
+	lsr.l #8, d1 					; convert from fixed to int 
+	
+	lea CosTable, a0 
+	lsl.l #1, d1 					; multiply angle by 2 to get word-offset into table 
+	add.l d1, a0 					; a0 pointing at cos((int)AimAngle)
+	move.w (a0), d1 				; d1 = 8.8 cos value 
+	
+	muls d0, d1 					; d1 = AIM_RADIUS * cos(AimAngle) = DeltaX * 256 
+	
+	move.l #AIM_CENTER_X, d2 
+	add.l d2, d1 					; d1 = ball x pos. (x = AIM_CENTER_X + DeltaX)
+	
+
+	; Get delta y from center 
+	move.l AimAngle, d2 			; load global var AimAngle into d2 
+	lsr.l #8, d2 					; convert from fixed to int 
+	
+	lea SinTable, a0 
+	lsl.l #1, d2 					; multiply angle by 2 to get word-offset into table 
+	add.l d2, a0 					; a0 pointing at sin((int)AimAngle)
+	move.w (a0), d2 				; d2 = 8.8 sin value 
+	
+	muls d0, d2 					; d2 = AIM_RADIUS * sin(AimAngle) = DeltaX * 256 
+	
+	move.l #AIM_CENTER_Y, d3 
+	add.l d3, d2 					; d3 = ball y pos. (y = AIM_CENTER_Y + DeltaX)
+	
+	; Update the ball position
+	move.l #POINTER_1_INDEX, d0 
+	asr.l #8, d1 				;convert from int to fixed 
+	asr.l #8, d2 				;convert from int to fixed 
+	jsr SetSpritePosition
+    
+    
+	; Get delta x from center 
+	move.l #((2*AIM_RADIUS/3)>>8), d0 		
+	move.l AimAngle, d1 			; load global var AimAngle into d1 
+	lsr.l #8, d1 					; convert from fixed to int 
+	
+	lea CosTable, a0 
+	lsl.l #1, d1 					; multiply angle by 2 to get word-offset into table 
+	add.l d1, a0 					; a0 pointing at cos((int)AimAngle)
+	move.w (a0), d1 				; d1 = 8.8 cos value 
+	
+	muls d0, d1 					; d1 = AIM_RADIUS * cos(AimAngle) = DeltaX * 256 
+	
+	move.l #AIM_CENTER_X, d2 
+	add.l d2, d1 					; d1 = ball x pos. (x = AIM_CENTER_X + DeltaX)
+	
+
+	; Get delta y from center 
+	move.l AimAngle, d2 			; load global var AimAngle into d2 
+	lsr.l #8, d2 					; convert from fixed to int 
+	
+	lea SinTable, a0 
+	lsl.l #1, d2 					; multiply angle by 2 to get word-offset into table 
+	add.l d2, a0 					; a0 pointing at sin((int)AimAngle)
+	move.w (a0), d2 				; d2 = 8.8 sin value 
+	
+	muls d0, d2 					; d2 = AIM_RADIUS * sin(AimAngle) = DeltaX * 256 
+	
+	move.l #AIM_CENTER_Y, d3 
+	add.l d3, d2 					; d3 = ball y pos. (y = AIM_CENTER_Y + DeltaX)
+	
+	; Update the pointer 2 position
+	move.l #POINTER_2_INDEX, d0 
+	asr.l #8, d1 				;convert from int to fixed 
+	asr.l #8, d2 				;convert from int to fixed 
+	jsr SetSpritePosition
+    
+    
+    ; Update the pointer 3 position
+	move.l #POINTER_3_INDEX, d0 
+    move.l #(AIM_CENTER_X>>8), d1 
+    move.l #(AIM_CENTER_Y>>8), d2 
+	jsr SetSpritePosition
+    
+    rts 
+    
+    
+InitPointerSprites:
+    
+    move.l #POINTER_1_INDEX, d0 
+    move.l #POINTER_TILE_INDEX, d1 
+    jsr SetSpritePattern
+    
+    move.l #POINTER_2_INDEX, d0 
+    move.l #POINTER_TILE_INDEX, d1 
+    jsr SetSpritePattern
+    
+    move.l #POINTER_3_INDEX, d0 
+    move.l #POINTER_TILE_INDEX, d1 
+    jsr SetSpritePattern
+
+    rts 
+    
+HidePointers:
+
+    move.l #POINTER_1_INDEX, d0 
+    move.l #-20, d1 
+    move.l #-20, d2
+    jsr SetSpritePosition
+    
+    move.l #POINTER_2_INDEX, d0 
+    move.l #-20, d1 
+    move.l #-20, d2
+    jsr SetSpritePosition
+    
+    move.l #POINTER_3_INDEX, d0 
+    move.l #-20, d1 
+    move.l #-20, d2
+    jsr SetSpritePosition
+    
     rts 

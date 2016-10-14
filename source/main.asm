@@ -220,6 +220,7 @@ BlankPattern:
     INCLUDE "tiles/glyphs.asm"
     INCLUDE "tiles/lose.asm"
     INCLUDE "tiles/win.asm"
+    INCLUDE "tiles/pointer.asm"
 	
 	; MAP includes 
 	EVEN 

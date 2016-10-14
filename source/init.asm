@@ -82,6 +82,11 @@ Init:
     move.l #(WIN_TILE_INDEX*32), a1 
     jsr LoadTiles 
     
+    move.l #(POINTER_TILES_WIDTH*POINTER_TILES_HEIGHT), d0 
+	lea PointerTiles, a0 
+	move.l #(POINTER_TILE_INDEX*32), a1 
+	jsr LoadTiles
+    
 	; Load the game's palette
 	move.l #1, d0 
 	lea GamePalette, a0 
