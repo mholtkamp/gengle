@@ -292,6 +292,9 @@ _PositionBall:
 _CheckLaunch:
 
 	move.w ButtonsDown, d0 
+    move.w PrevDown, d1 
+    not.w d1 
+    or.w d1, d0 
 	btst #BUTTON_A, d0 
 	bne .return 
 	
@@ -549,7 +552,12 @@ LoadLose:
     
     rts 
     
-    
+; ------ SUBROUTINE ------
+; LoadWin 
+; 
+; Loads the win state. Draws the 
+; "WIN" text on screen.
+; ------------------------	   
 LoadWin:
 
     lea WinMap, a0 
