@@ -1,6 +1,6 @@
 Level0Data:
 	dc.l 14 		; num pegs 
-	dc.l 1 			; num red pegs
+	dc.l 3 			; num red pegs
 	dc.l 6			; stating ball count 
 	dc.w 8, 80 
 	dc.w 24, 56 

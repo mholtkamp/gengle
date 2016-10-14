@@ -233,6 +233,7 @@ BlankPattern:
 	EVEN 
 	INCLUDE "levels/level0.asm"
     INCLUDE "levels/level1.asm"
+    INCLUDE "levels/level2.asm"
 	INCLUDE "levels/levels.asm"
 	
 	; BSS addresses 
