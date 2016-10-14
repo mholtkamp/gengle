@@ -130,10 +130,16 @@ Main_Loop:
 .check_lose 
 	cmpi.l #STATE_LOSE, d0 
 	bne .check_win 
-	move.l #STATE_START, GameState
+	jsr UpdateLoseWin
 	jmp Main_Loop
 	
 .check_win
+    cmpi.l #STATE_WIN, d0 
+    bne .error_state 
+    jsr UpdateLoseWin 
+    jmp Main_Loop
+    
+.error_state 
 	
 	jmp Main_Loop        ; go to next iteration of game loop
  
@@ -212,11 +218,15 @@ BlankPattern:
 	INCLUDE "tiles/purple_peg.asm"
 	INCLUDE "tiles/saver.asm"
     INCLUDE "tiles/glyphs.asm"
+    INCLUDE "tiles/lose.asm"
+    INCLUDE "tiles/win.asm"
 	
 	; MAP includes 
 	EVEN 
 	INCLUDE "maps/title.asm"
     INCLUDE "maps/strings.asm"
+    INCLUDE "maps/lose.asm"
+    INCLUDE "maps/win.asm"
 	
 	; Level includes 
 	EVEN 

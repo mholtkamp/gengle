@@ -259,8 +259,13 @@ GenerateVDPCommand:
 ; If cleared, then that button is up.
 ; ------------------------
 UpdateButtons:
-	clr.l d0 
 	
+    ; Save previous button states so you can 
+    ; easily tell if a button was just pressed this frame.
+    move.w ButtonsDown, PrevDown 
+    
+    clr.l d0 
+    
 	; Request the high part of controller status word 
 	; nop's are put in to account for the delay
 	move.b #GET_CONTROLLER_HIGH, ADDR_CONTROLLER_DATA_PORT

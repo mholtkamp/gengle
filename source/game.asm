@@ -358,8 +358,19 @@ UpdateResolve:
     move.l RedPegCount, d0 
     cmpi.l #0, d0 
     bne .check_fallout
-    ; increment level and call load level again
+    
+    ; increment level and check if that was the last level 
     addq.l #1, Level 
+    cmpi.l #NUM_LEVELS, Level 
+    bne .load_next_level
+    
+    ; That was the last level, so switch to the win state 
+    move.l #STATE_WIN, GameState
+    jsr LoadWin 
+    jsr ResetAllSprites
+    jmp .return 
+    
+.load_next_level
     jsr LoadLevel 
     move.l #STATE_AIM, GameState
     jmp .return 
@@ -380,7 +391,7 @@ UpdateResolve:
 	cmpi.l #0, BallCount 
 	bne .set_state_aim
 	move.l #STATE_LOSE, GameState
-	jsr LoadStart
+	jsr LoadLose 
 	jmp .return 
 .set_state_aim 
 	move.l #STATE_AIM, GameState
@@ -516,4 +527,56 @@ DrawBallCount:
 	lea (BallCount+2), a0 
 	move.l #(BALLS_STRING_ADDR+7*2), a1         ; the 7*2 is to push the digit 2 cells over from end of "BALLS" text 
 	jsr LoadMap
+    rts 
+    
+; ------ SUBROUTINE ------
+; LoadLose 
+; 
+; Loads the lose state. Draws the 
+; "LOSE" text on screen.
+; ------------------------	
+LoadLose:
+
+    lea LoseMap, a0 
+    move.l #LOSE_MAP_WIDTH, d0       ; width = 3 
+    move.l #LOSE_MAP_HEIGHT, d1       ; height = 3 
+    move.l #0, d2       ; palette 0 
+    move.l #LOSE_TILE_INDEX, d3 
+    move.l #(LOSE_ADDR), a1 
+    jsr LoadMap
+    
+    jsr ResetAllSprites
+    
+    rts 
+    
+    
+LoadWin:
+
+    lea WinMap, a0 
+    move.l #WIN_MAP_WIDTH, d0       ; width = 3 
+    move.l #WIN_MAP_HEIGHT, d1       ; height = 3 
+    move.l #0, d2       ; palette 0 
+    move.l #WIN_TILE_INDEX, d3 
+    move.l #(WIN_ADDR), a1 
+    jsr LoadMap
+    
+    rts 
+    
+
+; ------ SUBROUTINE ------
+; UpdateLoseWin 
+; 
+; Will check if user is hitting START. If so, then  
+; will reset to the start state.
+; ------------------------	    
+UpdateLoseWin:
+
+    move.w ButtonsDown, d0 
+    btst #BUTTON_START, d0 
+    bne .return 
+    
+    move.l #STATE_START, GameState
+    jsr LoadStart 
+    
+.return 
     rts 
